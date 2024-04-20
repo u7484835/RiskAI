@@ -1,4 +1,4 @@
-from maps import *
+from maps.classic import *
 import networkx as nx
 import matplotlib.pyplot as plt
 import scipy as sp
