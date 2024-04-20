@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "riskai"
+version = "0.1.0"
+description = "This project contains a symbolic AI agent to play Risk: Global Domination for fixed dice, no fog no portals. It uses a key technique of actiof action abstraction."
+authors = ["Campbell McTernan <u7484835@anu.edu.au>"]
+license = "All Rights Reserved"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+networkx = "^3.3"
+click = "^8.1.7"
+matplotlib = "^3.8.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
