@@ -1,4 +1,5 @@
 import networkx as nx
+from riskAI.structures import Draft
 
 # Create an empty graph
 Classic = nx.Graph()

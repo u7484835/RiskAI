@@ -2,20 +2,7 @@
 
 import networkx as nx
 from enum import Enum
-from typing import Optional, Tuple, TypeAlias
-
-class MapType(Enum):
-    """
-    Represents the different maps that can be played on.
-
-    Attributes:
-        CLASSIC: Original Risk map in physical board game.
-        ASIA: Called "Asia 1800's" in Risk: Global domination. 48 territories, features large indonesia bonus. 
-        US: Called "United States" in Risk: Global domination. 42 territories, features uniform blocky bonuses. 
-    """
-    CLASSIC = 1
-    ASIA = 2
-    US = 3
+from typing import Optional, Tuple, TypeAlias, TypedDict
 
 
 class CardType(Enum):
@@ -88,4 +75,29 @@ Represents what fortify user player should make. If None, no fortify.
 ints in tuple are structured as (territoryID from, territoryID to, amount of troops to move).
 """
 
+class PlayerDict(TypedDict):
+    id: int
+    colour: str
+    troops: int
+    diceAggression: int
+    territoryAggression: int
+    bonusAggression: int
+    bonusesHeld: list[str]
+        
 
+
+class GameState:
+    """
+    Holds all variables needed to represent a game
+
+    Attributes:
+        trade (Trade): The trade (if it will occur) and the associated cards.
+        drafts (list[(int, int)]): A list of locations formatted as (territory ID, amount of troops) to place troops.  
+
+    Methods:
+        __init__(name: str, age: int): Initializes a new instance of the Person class.
+        introduce(): Prints an introduction message for the person.
+    """
+    def __init__(self, graph: nx.Graph, playerDict : PlayerDict, playerRelations : list[list[int]]):
+        self.graph = graph
+        self.playerDict = playerDict

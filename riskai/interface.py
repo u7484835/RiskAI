@@ -2,6 +2,7 @@
 # coded objects
 import click
 from structures import *
+from maps.mapStructures import MapType
 
 
 
