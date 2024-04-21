@@ -1,5 +1,64 @@
 import networkx as nx
-from riskAI.structures import Draft
+from enum import Enum
+
+
+class ClassicBonus(Enum):
+    """
+    Represents different bonuses for the classic map
+
+    Attributes:
+        NORTHAMERICA: North America bonus
+        EUROPE: Europe bonus
+        ASIA: Asia bonus
+        SOUTHAMERICA: South America bonus
+        AFRICA: Africa bonus
+        AUSTRALIA: Australia bonus
+    """
+    NORTHAMERICA = 1
+    EUROPE = 2
+    ASIA = 3
+    SOUTHAMERICA = 4
+    AFRICA = 5
+    AUSTRALIA = 6
+    
+
+classicBonuses = {
+    ClassicBonus.NORTHAMERICA: {
+        "name": "NA",
+        "bonus": 5
+    },
+    ClassicBonus.EUROPE: {
+        "name": "EU",
+        "bonus": 5
+    },
+    ClassicBonus.ASIA: {
+        "name": "EU",
+        "bonus": 7
+    },
+    ClassicBonus.SOUTHAMERICA: {
+        "name": "EU",
+        "bonus": 2
+    },
+    ClassicBonus.AFRICA: {
+        "name": "EU",
+        "bonus": 3
+    },
+    ClassicBonus.AUSTRALIA: {
+        "name": "EU",
+        "bonus": 2
+    },
+}
+
+
+# Eventually provide a class which helps to enumerator bonuses, make that ID and make there 
+# a str name. Then make each bonus have an Enum which denotes NA, SA, AF, EU, AS, AU etc, and then 
+# have them in this dict. 
+class ClassicBonuses(TypedDict):
+    id: ClassicBonus
+    name: str
+    bonus: int
+    
+
 
 # Create an empty graph
 Classic = nx.Graph()
