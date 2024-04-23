@@ -131,3 +131,23 @@ def instructFortify(fortify : Fortify):
     """
     pass
 
+
+
+def instructTurn(draft : Draft, attacks : Attack, fortify : Fortify):
+    """
+    Tells user full list of actions to to implement as instructed by the AI agent. 
+    
+    
+    Requires:
+        - `instructDraft()`
+        - `instructAttack()`
+        - `instructFortify()`
+    """
+    pass
+
+def displayGameover():
+    """
+    Outputs information about the winner of the game and any final information which might be helpful
+    for testing.
+    """
+    pass

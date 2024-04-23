@@ -80,6 +80,16 @@ Represents what fortify user player should make. If None, no fortify.
 ints in tuple are structured as (territoryID from, territoryID to, amount of troops to move).
 """
 
+
+
+
+Move: TypeAlias = Tuple[Draft, Attack, Fortify]
+"""
+Represents a full turn which a player should take. Will be the output of the AI agent.
+"""
+
+
+
 # Consider how to be holding the data of the AI player. Could be in here with an added flag, 
 # or could be a seperate structure. 
 class PlayerDict(TypedDict):
