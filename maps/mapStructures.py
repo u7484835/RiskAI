@@ -1,6 +1,7 @@
 import networkx as nx
 from enum import Enum
 from typing import TypedDict
+from classic import *
 
 class MapType(Enum):
     """
@@ -16,19 +17,6 @@ class MapType(Enum):
     US = 3
     
 
-# Eventually provide a class which helps to enumerator bonuses, make that ID and make there 
-# a str name. Then make each bonus have an Enum which denotes NA, SA, AF, EU, AS, AU etc, and then 
-# have them in this dict. 
-class Bonuses(TypedDict):
-    id: str
-    bonus: int
-    
-    
-"""
-Represents whether a trade action is intending to be played. It will be 
-None if no trade is occuring, otherwise it will be a tuple of three cards 
-to be played in the order given. 
-"""
 
 
 class Map:
@@ -36,13 +24,15 @@ class Map:
     Represents a map to be played on.
 
     Attributes:
-        nodes (dict): A dictionary of nodes with key as node ID and value as a dictionary with the following keys:
-            name (str): The name of the territory.
-            troops (int): The amount of troops on the territory.
-            player (int): The player ID that owns the territory.
-            bonus (str): The bonus the territory belongs to.
-        edges (list): A list of edges with each edge as a tuple of two node IDs. 
+        graph (nx.Graph): A networkx graph representing the map, with each node representing a territory.
+        bonuses (dict): A dictionary corresponding each bonus to the troops awarded if all territories are held. 
     """
-    def __init__(self, graph : nx.Graph, bonuses : list):
-        self.graph = graph
-        self.edges = edges
+    def __init__(self, map : MapType):
+        match map:
+            case MapType.CLASSIC:
+                self.graph = Classic
+                self.bonuses = classicBonuses
+            # Currently do not have asia implemented but showing how it would be instantiated.
+            case MapType.ASIA:
+                self.graph = Classic
+                self.bonuses = classicBonuses

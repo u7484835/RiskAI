@@ -50,13 +50,6 @@ classicBonuses = {
 }
 
 
-# Eventually provide a class which helps to enumerator bonuses, make that ID and make there 
-# a str name. Then make each bonus have an Enum which denotes NA, SA, AF, EU, AS, AU etc, and then 
-# have them in this dict. 
-class ClassicBonuses(TypedDict):
-    id: ClassicBonus
-    name: str
-    bonus: int
     
 
 

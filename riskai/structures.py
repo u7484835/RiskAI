@@ -3,6 +3,7 @@
 import networkx as nx
 from enum import Enum
 from typing import Optional, Tuple, TypeAlias, TypedDict
+from maps.mapStructures import Map
 
 
 class CardType(Enum):
@@ -135,21 +136,38 @@ x == y are irrelevant and will be 0.
 
 
 
-
+# !note: Currently the user player is has data stored exactly the same as all other players, 
+# with a simple differentiation to decide 
 class GameState:
     """
-    Holds all variables needed to represent a game
+    Main object which holds all variables needed to represent the game of Risk.
 
     Attributes:
-        graph (nx.Graph): The graph structure holding all
-        drafts (list[(int, int)]): A list of locations formatted as (territory ID, amount of troops) to place troops.  
+        map (Map): The graph structure holding all territories, connections, and owners grouped
+        with the bonuses and their values
+        playerID (int) : The number ID of the user player which the AI agent plays as
+        turn (int): The current turn number
+        playerDict (PlayerDict): A dictionary holding details of all players for both display and 
+        decision making
+        playerRelations (RelationShipMatrix): A matrix holding the relationships between all players
+        cards (Cards): A list of cards held by the user player 
 
     Methods:
         __init__(self, graph: nx.Graph, turn : int, playerDict : PlayerDict, playerRelations
         : RelationShipMatrix, cards : Cards)): Initializes a new instance of the GameState class.
+        heuristic() : Calculates how favourable the current GameState is. 
     """
-    def __init__(self, graph: nx.Graph, turn : int, playerDict : PlayerDict, playerRelations : RelationShipMatrix, cards : Cards):
-        self.graph = graph
+    def __init__(self, map: Map, playerID: int, turn : int, playerDict : PlayerDict, playerRelations : RelationShipMatrix, cards : Cards):
+        self.map = map
+        self.playerID = playerID
+        self.turn = turn
         self.playerDict = playerDict
         self.playerRelations = playerRelations
         self.cards = cards
+        
+    # Decide whether to have the heuristic as a method or a function in a separate file. 
+    def heuristic(self) -> int:
+        pass
+    
+    # Also decide whether to have functions like incrementing the turn, adding a card
+       
