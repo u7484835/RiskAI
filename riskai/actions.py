@@ -43,6 +43,9 @@ class Action:
 
 # !These are all a very rough draft of the action implementations. Some might be 
 # entirely removed or combined, and the parameters to most will be significantly changed. 
+
+# !NoTE: All action classes will have a prune method which will take the gamestate 
+# and output a boolean for the pruning discussed in pruneActionNodes().
 class KillPlayer(Action):
     """
     Kill a player by taking all their territories.
