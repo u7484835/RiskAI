@@ -1,5 +1,41 @@
 import click
 from structures import *
+from actions import *
+
+
+def gameStateHeuristic(gameState : GameState) -> int:
+    """
+    Calculates how favourable the current GameState is. Considerations should be:
+    
+    - Number of players: having less players is hugely preferrable
+    
+    - Player relationships: Having friendly relationships is very beneficial, 
+    conversely vengence or hatred is very bad in human games. According to the 
+    player matrix, high aggressions between two non-user players is very 
+    favourable. 
+    
+    - Amount of troops: should be measured in relation to everyone else
+    
+    - Troop density: Concentrated stacks are very preferrable
+    
+    - Bonuses: Having strong bonuses is vital
+    
+    - Defence points: fewest points of defence 
+    
+    - Bonus defence: Borders strong enough to disuade attacks is necessary
+      (it is unlikely troop counts allow for entirely negative attacks)
+      
+    - Player proximity: It is best to have distance for expansion
+    
+    - Untaken bonus proximity: Maneuvering for bonuses is key
+    
+    - Card count + values
+    
+    - Territories: Gives passive troops and is important    
+    
+    - Danger by troops/bonuses/cards/ aggression from other players is vital
+    """
+    pass
 
 # !Note: Iterative deepening search should save all maps of hard calculation  
 # paths into a dictionary for lookup. Iterative deepening should then also 
@@ -52,6 +88,12 @@ def depthLimitedSearch (gameState : GameState, depth : int) -> Move:
     action have very significant computational requirements, so it will 
     call harsh pruning functions to limit the node paths expanded drastically. 
     Note that the pruning will allow the possibility of suboptimal play. 
+    
+    Requires:
+        - `generateActionNodes()`
+        - `pruneActionNodes()`
+        - `calculateActionNode()`
+        - `gameStateHeuristic()`
     """
     pass
 
@@ -64,6 +106,9 @@ def ids (gameState : GameState, timeConstraint : int) -> Move:
     It should then return the action with the highest utility as measured by the 
     heuristic function. Note that it should exit at any point during execution 
     as soon as the time constraint is met. 
+    
+    Requires:
+        - `depthLimitedSearch()`
     """
     pass 
 
@@ -73,6 +118,9 @@ def riskAgent(gameState : GameState) -> Move:
     """
     Main function to call AI agent. Gets move from iterative deepening search.
     Should define the time constraints on the search. 
+    
+    Requires:
+        - `ids()`
     """
     pass
     
