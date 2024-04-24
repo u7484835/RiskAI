@@ -75,13 +75,14 @@ Action Abstraction is the key conceptual technique underpinning this agent. I wi
 
 ### Iterative Deepening Search 
 
-For optimal play, it is vital that sequences of actions are considered and enacted. A simple example of this can be found in an endgame between two players. In any endgame situation troop production is vital and opposing players are likely to hold many territory bonuses. If a player can consistently break or deny their opponent all bonuses while maintaining at least one of their own, victory is almost certainly assured. Thus, to reach an intelligent and practical capacity my AI must be able to consider multiple actions in sequence (such as breaking multiple bonuses). It should be noted that due to the specifics of attacking in RGD, the order of actions which take place is extremely important. 
+For optimal play, it is vital that sequences of actions are considered and enacted. A simple example of this can be found in an endgame between two players. In any endgame situation troop production is vital and opposing players are likely to hold many territory bonuses. If a player can consistently break or deny their opponent all bonuses while maintaining at least one of their own, victory is almost certainly assured. Thus, to reach an intelligent and practical capacity my AI must be able to consider multiple actions in sequence (such as breaking multiple bonuses). It should be noted that due to the specifics of attacking in RGD, attempting to accomplish two actions in different orders could very drastically change the moves executed and thus all permutations of actions should be considered, including taking a more limited number of actions. 
+
+Iterative Deepening has been chosen because it allows for the agent to conform to turn timers, and 
 
 
-Due to the complex sequences of moves associated with Actions, considering sequences of 
 
 
-Combining sequences of actions 
+
 
 
 
