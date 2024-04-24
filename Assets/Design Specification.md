@@ -57,17 +57,33 @@ The bulk of the implementation has been scaffolded in the project code directory
 Action Abstraction is the key conceptual technique underpinning this agent. I will define an "action" to be a cohesive group of individual "moves" (such as attacking, drafting or fortifying to a single territory) with conceptual intent. This mimics the thought process of strong human players and provides a useful rubric to greatly simplify the calculation and evaluation of move sequences. The intent of this Action framework is to provide strict and discreet multi-move concepts which the agent can consider (such as killing a player), while still providing the capacity for the agent to play theoretically optimally given enough computational power and time. The draft list of actions the AI should consider is:
 
 
+| Action | Description |
+|--|--|
+| *Kill a Player*|Eliminates a player.|
+| *Take a bonus*| Captures all territories on a bonus to receive additional troops each turn.|
+| *Break a bonus* | Captures one territory in an opponent's bonus, removing their additional troop reward.|
+|*Hit a stack* | A stack is terminology for a territory with a high concentration of troops. Agent uses attacking advantage to capture the territory, significantly whittling down the opponent's troops and crippling their ability to retaliate.| 
+| *Expand Bonus Borders*| Chooses and captures more defensible chokepoints for territory borders, or moves towards capturing another bonus. | 
+| *Create a Position* | A position is terminology for a cluster of territories which are closely connected. Killing a player has significantly easier pathing if all of their troops are in the same area. Thus, creates a distant position of troops for survivability.|
+| *Defend Bonus Borders*| Evaluates bonus borders of high risk of being attacked and increases troops to dissuade aggression.  | 
+| *Take a Card* | Attacks a single territory with low troops to ensure a card is taken. |
+| *Migrate* | Moves majority of troops to a significantly different map position, either to avoid a dangerous player or to seek uncontested territory bonuses.|
+| *Take Territories* | Take adjacent territories in an uninformed way. This is a catch-all action which when calculated at sufficient depth should encompass all possible move sequences. |
+| *No Attack* | Does not capture a territory.|
 
 
 
+### Iterative Deepening Search 
 
-| Action | Description | Calculations |  
-|--|--| -- | 
-| *Kill a Player*|Agent eliminates a player| Finds the optimal pathing to capture all territories a player owns |
-| *Take a bonus*| Agent captures all territories on a bonus to receive additional troops each turn| Finds the optimal pathing to capture all territories in the bonus| 
-| *Break a bonus* | Agent captures one territory in an opponent's bonus, removing their additional troop reward| Finds pathing to capture the weakest border territory of bonus| 
-|*Hit a stack* | A stack is terminology for a territory with a high concentration of troops. Agent uses attacking advantage to capture the territory, significantly whittling down the opponent's troops and crippling their ability to retaliate| Chooses key stack and finds pathing  |
-| *Expand Bonus Borders*|A semi unique number representation of a board position for lightweight storage
+For optimal play, it is vital that sequences of actions are considered and enacted. A simple example of this can be found in an endgame between two players. In any endgame situation troop production is vital and opposing players are likely to hold many territory bonuses. If a player can consistently break or deny their opponent all bonuses while maintaining at least one of their own, victory is almost certainly assured. Thus, to reach an intelligent and practical capacity my AI must be able to consider multiple actions in sequence (such as breaking multiple bonuses). It should be noted that due to the specifics of attacking in RGD, the order of actions which take place is extremely important. 
+
+
+Due to the complex sequences of moves associated with Actions, considering sequences of 
+
+
+Combining sequences of actions 
+
+
 
 
 ### Data Structures
