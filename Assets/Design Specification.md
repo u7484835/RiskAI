@@ -29,16 +29,60 @@ The standard configuration in RGD is "Balanced Blitz" dice, which entirely recon
 ## Aims 
 
 
+This project aims to create a package running in the Command Line Interface (CLI) which can:
+
++ Represent the map and troops with a graph structure by implementing the NetworkX Python library
+
++ Play games from any initialised starting position and process all updates to the game state through manual user inputs
+
++ Implement the Python Click package for modularity and ease of CLI use
+
++ Evaluate static positions and the outcomes of Actions
+
++ Use an iterative deepening algorithm terminated by time limits to select combinations of actions
+
++ Provide an advanced debugging mode with a visual gamestate
+
+
+<p> For excellence in the performance and competitive playability, this project aims to: </p>
+
+  
++ Confidently beat all bots provided in the native game implementation, from difficulties "Beginner" to "Expert"
+
++ Implement non-deterministic actions to avoid being predictable to human players
+
++ Play with minimal positional blunders as analysed by a human expert
+
+  
+
+
+## Implementation
+
+### Abstract Actions
 
 
 
+### Data Structures
 
+(NetworkX, enums)
 
+| Type | Data |
 
+|--|--|
 
+| ***Player***| A player is white or black|
 
+| ***PieceType***| Denotes all standard chess pieces|
 
+| ***Rank*** | Indicates the horizontal row component of a square location from White's perspective|
 
+|***File*** | Indicates the vertical column component of a square location from White's perspective|
+
+| ***HashBoard***|A semi unique number representation of a board position for lightweight storage
+
+  
+
+### Selection Algorithm
 
 
 
