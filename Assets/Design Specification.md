@@ -7,7 +7,7 @@
   
   
 
-## Overview
+## Introduction
 
 This project aims to implement an Artificial Intelligence (AI) agent to play the online board game Risk: Global Domination. Risk is a multiplayer diplomacy game with an objective to capture all territories on a map. Territories are captured from other players by attacking with dice rolls, and this non-determinism results in Risk having a state-space and game-tree complexity hugely exceeding games popular for AI such as Chess, Shogi, and Go [1]. Current academic work on Risk agents have primarily used techniques such as the Monte Carlo Tree Search (MCTS) and Machine Learning  [4, 5, 6, 7] with low success and subhuman performance attributed to this huge game complexity. Thus, this project will use the novel approach of "Action Abstraction": forcing the agent to select and evaluate handcrafted high-level strategies such as eliminating players or taking a continent. The agent will perform an Iterative Deepening Search (IDS) under time constraints to find the best combination of actions and will instruct the user on which moves to execute. This package will be implemented in Python and will provide a Command Line Interface (CLI) for interaction with the agent. Overall, the aim of this project will be to surpass all agents implemented for the game, and demonstrate a playing style which is enriching and balanced for high-level human play. 
 
@@ -45,11 +45,7 @@ This project aims to create a package running in the Command Line Interface (CLI
 + Play with minimal positional blunders as analysed by a human expert
 
   
-
-
-## Implementation
-
-The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications. This section will instead discuss the conceptual groundwork for the agent. 
+## Design Choices
 
 
 ### Action Abstraction
@@ -75,47 +71,81 @@ Action Abstraction is the key conceptual technique underpinning this agent. I wi
 
 ### Iterative Deepening Search 
 
-For optimal play, it is vital that sequences of actions are considered and enacted. A simple example of this can be found in an endgame between two players. In any endgame situation troop production is vital and opposing players are likely to hold many territory bonuses. If a player can consistently break or deny their opponent all bonuses while maintaining at least one of their own, victory is almost certainly assured. Thus, to reach an intelligent and practical capacity my AI must be able to consider multiple actions in sequence (such as breaking multiple bonuses). It should be noted that due to the specifics of attacking in RGD, attempting to accomplish two actions in different orders could very drastically change the moves executed and thus all permutations of actions should be considered, including taking a more limited number of actions. 
-
-Iterative Deepening has been chosen because it allows for the agent to conform to turn timers, and 
+One key component in determining the search method for actions is the predicted high computational requirements to "plan" an action by finding a suitable set of moves to accomplish this. I estimate that calculating the viability of actions, and finding the pathing to execute them will take a few seconds. 
 
 
-
+To fully utilise the Action system, it is key that the agent considers and selects sequences of multiple actions, but also understands that simple enacting one action in a turn may be beneficial. Iterative Deepening's depth-limited search provides the perfect framework to manage this goal, as the first few depth searches will ensure that the agent can find reliable and profitable courses of action within its time limit, and then continue searching for more complex beneficial action sequences. Due to the graph implementation of the map, it is likely that nodes of the game tree will have high memory requirements. Thus, the depth first searches can ensure that the search queue is kept small to increase efficiency. One flaw with this system is that by nature the IDS will expand game-tree nodes multiple times. 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+As iterative deepening can be used to successively check longer sequences of actions, it provides the perfect framework to compare action sequences and find a reliable "best case" solution within time constraints
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+For optimal play, it is vital that sequences of actions are considered and enacted. It also should be noted that due to the specifics of attacking in RGD, attempting to accomplish two actions in different orders could very drastically the results. Iterative Deepening has been chosen to search through the space of actions because it allows for the agent to gracefully exit the search on turn timers, and allows for sequences of actions of different length to be compared. Often it will be the most beneficial to simply take a card and play neutrally, or to slowly expand territories into a bonus. 
+
+The Iterative Deepening Search will be accomplished by recursively calling a depth limited search on greater depths, and will only terminate after a set period of time. The majority of the agent's handcrafted logic will be 
+
+
+
+
+
+## Implementation
+
+The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications. This section will instead discuss the conceptual groundwork for the agent. 
 
 
 ### Data Structures
 
-+ Utilise the Python NetworkX library to represent the agent's gamestate 
+Network graph 
 
-+ Implement the Python Click package for CLI use
-(NetworkX, enums)
+Map
 
-| Type | Data |
+Relationship matrix 
 
-|--|--|
+Player dictionary 
 
-| ***Player***| A player is white or black|
-
-| ***PieceType***| Denotes all standard chess pieces|
-
-| ***Rank*** | Indicates the horizontal row component of a square location from White's perspective|
-
-|***File*** | Indicates the vertical column component of a square location from White's perspective|
-
-| ***HashBoard***|A semi unique number representation of a board position for lightweight storage
-
-  
-
-### Selection Algorithm
+GameState
 
 
-## Design Choices
+## Testing 
 
 
+
+
+## Design Challenges
+
+In order of difficulty, the challenges I expect in this project are:
+
++ **Amount of Actions concepts**: There are currently 13 intended Action Abstraction  concepts, each of which requiring complex data structures, pruning and calculation. It is likely that time constrains will make meeting the goal of implementing all actions very difficult. 
+
++ **Unique AI approach**:  I have developed the approach of using Action Abstraction in isolation from study of other AI systems, and while it bears similarity to many programming problems this approach will likely leave very little room for external problem solving or referencing of pre-existing solutions.
+
++  **Python package management**: I have never created a complex project in Python and I believe a cohesive system which displays good coding practice will be difficult, especially because most markers will have high fluency and thus expectations for Python code
 
 
 
