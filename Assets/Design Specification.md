@@ -71,69 +71,43 @@ Action Abstraction is the key conceptual technique underpinning this agent. I wi
 
 ### Iterative Deepening Search 
 
-One key component in determining the search method for actions is the predicted high computational requirements to "plan" an action by finding a suitable set of moves to accomplish this. I estimate that calculating the viability of actions, and finding the pathing to execute them will take a few seconds. 
 
+The design constraints when selecting an algorithm to best traverse through action sequences were:
 
-To fully utilise the Action system, it is key that the agent considers and selects sequences of multiple actions, but also understands that simple enacting one action in a turn may be beneficial. Iterative Deepening's depth-limited search provides the perfect framework to manage this goal, as the first few depth searches will ensure that the agent can find reliable and profitable courses of action within its time limit, and then continue searching for more complex beneficial action sequences. Due to the graph implementation of the map, it is likely that nodes of the game tree will have high memory requirements. Thus, the depth first searches can ensure that the search queue is kept small to increase efficiency. One flaw with this system is that by nature the IDS will expand game-tree nodes multiple times. 
++ **High computation time**: It is estimated that calculating the viability of Actions from a given state, and calculating the moves to execute them will take a few seconds which is quite high.
 
++ **Turn timer**: To be viable in online games against human players, the agent must make a turn within 60-180s. The agent should be able to terminate with a reasonable move at any point in the search sequence to achieve this.
 
++ **Variable action sequence length**: It may not always be beneficial to take all actions possible, in fact simple neutral plays like taking a card are usually preferred. Despite this, sequencing many moves is vital for situations like 2 player end games. The agent must always at least return a simple beneficial move but should also calculate in depth to cover this possibility.
 
-
-
-
-
-
-
-
-
-
-
-
-As iterative deepening can be used to successively check longer sequences of actions, it provides the perfect framework to compare action sequences and find a reliable "best case" solution within time constraints
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-For optimal play, it is vital that sequences of actions are considered and enacted. It also should be noted that due to the specifics of attacking in RGD, attempting to accomplish two actions in different orders could very drastically the results. Iterative Deepening has been chosen to search through the space of actions because it allows for the agent to gracefully exit the search on turn timers, and allows for sequences of actions of different length to be compared. Often it will be the most beneficial to simply take a card and play neutrally, or to slowly expand territories into a bonus. 
-
-The Iterative Deepening Search will be accomplished by recursively calling a depth limited search on greater depths, and will only terminate after a set period of time. The majority of the agent's handcrafted logic will be 
-
-
+All of these requirements are met well by the Iterative Deepening Search,  which will continually use a depth-limited search to find reliable and profitable courses of action within its time limit, and then continue searching for more complex beneficial action sequences. One flaw with this system is that by nature the IDS will expand game-tree nodes multiple times which may crucially slow performance, and further in development the Breadth-First search will be considered as well. I currently estimate that under the turn timer constraints the agent will only be able to calculate sequences of actions up to 3 ply deep due to computational time, but the practical outcome will only be learnt in development.
 
 
 
 ## Implementation
 
-The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications. This section will instead discuss the conceptual groundwork for the agent. 
+The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications. This section will give a brief overview of the system.
 
 
 ### Data Structures
 
-Network graph 
-
-Map
-
-Relationship matrix 
-
-Player dictionary 
-
-GameState
+The main data structures planned for use in this project are:
 
 
-## Testing 
+| Structure| Purpose| Encoding | 
+|--|--|-- | 
+| *NetworkX Graph*| Encodes the interconnected territories which comprise of a Risk map| Nodes represent territories with internal fields such as troops and owner. Edges represent adjacent territory connections. |
+| *Map Class* | Stores all possible information about a Risk board| Contains a Graph and a dictionary to categorise bonuses|
+| *Player Dictionary * | Stores all isolated information about a player including their troop total and estimated danger| Contains an entry for each player, with an int key |
+| *Relationship Matrix* | Stores the friendliness/aggression of player A towards player B for all possible combinations| Each entry will be an integer in range [0, 1000] with 500 being the neutral starting state. A higher number is more friendly. |
+| *GameState Class* | Contains all possible data about the current game, to be used as nodes in the search tree | Class which holds all aforementioned structures | 
 
+Note that the implementation for the Action search has not been figured out yet. 
+
+
+### Control Flow
+
+As shown in the 
 
 
 
