@@ -86,7 +86,7 @@ All of these requirements are met well by the Iterative Deepening Search,  which
 
 ## Implementation
 
-The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications. This section will give a brief overview of the system.
+The bulk of the implementation has been scaffolded in the project code directory. Please see the files, functions and classes definitions and docstrings for more detailed specifications, and the hierarchy charts in the directory.  This section will give a brief overview of the system.
 
 
 ### Data Structures
@@ -102,13 +102,7 @@ The main data structures planned for use in this project are:
 | *Relationship Matrix* | Stores the friendliness/aggression of player A towards player B for all possible combinations| Each entry will be an integer in range [0, 1000] with 500 being the neutral starting state. A higher number is more friendly. |
 | *GameState Class* | Contains all possible data about the current game, to be used as nodes in the search tree | Class which holds all aforementioned structures | 
 
-Note that the implementation for the Action search has not been figured out yet. 
-
-
-### Control Flow
-
-As shown in the 
-
+Note that the implementation for the Action search has not been figured out yet.
 
 
 ## Design Challenges
@@ -119,22 +113,17 @@ In order of difficulty, the challenges I expect in this project are:
 
 + **Unique AI approach**:  I have developed the approach of using Action Abstraction in isolation from study of other AI systems, and while it bears similarity to many programming problems this approach will likely leave very little room for external problem solving or referencing of pre-existing solutions.
 
-+  **Python package management**: I have never created a complex project in Python and I believe a cohesive system which displays good coding practice will be difficult, especially because most markers will have high fluency and thus expectations for Python code
++  **Python package management**: I have never created a complex project in Python and I believe a cohesive system which displays good coding practice will be difficult, especially because most markers will have high fluency and thus expectations for Python code.
 
 
 
 ## References
 
-[1] Michael Wolf: An Intelligent Artificial Player for the Game of Risk
 
-[2] Jacob Gillenwater: RISK Gameplay Analysis Using Stochastic Beam Search
-
-[3] RGD Balanced Blitz Source code: https://github.com/smgstudio/risk-dice/tree/master 
-
-[4] Rene G. Ferrari, Joaquim V. C. Assuncao: Towards playing Risk with a hybrid Monte Carlo based agent
-
-[5] Simon Bethdavid: Zero-Knowledge Agent Trained for the Game of Risk
-
-[6] Erik Blomqvist: Playing the Game of Risk with an AlphaZero Agent
-
-[7] Lucas Gnecco Heredia, Tristan Cazenave: Expert Iteration for Risk
+[1]  Wolf, M. (2005) An Intelligent Artificial Player for the Game of Risk.
+[2]   Gillenwater, J. (2022) RISK Gameplay Analysis Using Stochastic Beam Search.
+[3]  SMG Studio (2021) RGD Balanced Blitz Source code. Available at: [https://github.com/smgstudio/risk-dice/tree/master](https://github.com/smgstudio/risk-dice/tree/master) (Accessed: 17 April 2024).
+[4]   Ferrari, R.G. and Assuncao, J.V.C. (2022) Towards playing Risk with a hybrid Monte Carlo based agent.
+[5]   Bethdavid, S. (2020) Zero-Knowledge Agent Trained for the Game of Risk.
+[6]   Blomqvist, E. (2020) Playing the Game of Risk with an AlphaZero Agent.
+[7]   Heredia, L.G. and Cazenave, T. (2022) Expert Iteration for Risk.
