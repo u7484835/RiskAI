@@ -31,8 +31,8 @@ class Map:
         match map:
             case MapType.CLASSIC:
                 self.graph = Classic
-                self.bonuses = classicBonuses
+                self.bonuses = classicBonusVals
             # Currently do not have asia implemented but showing how it would be instantiated.
             case MapType.ASIA:
                 self.graph = Classic
-                self.bonuses = classicBonuses
+                self.bonuses = classicBonusVals # should be AsiaBonusVals

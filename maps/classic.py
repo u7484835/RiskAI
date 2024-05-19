@@ -22,7 +22,7 @@ class ClassicBonus(Enum):
     AUSTRALIA = 6
     
 
-classicBonuses = {
+classicBonusVals = {
     ClassicBonus.NORTHAMERICA: {
         "name": "NA",
         "bonus": 5
