@@ -16,6 +16,15 @@ class MapType(Enum):
     ASIA = 2
     US = 3
     
+    @classmethod
+    def from_str(cls, name: str) -> "MapType":
+        """
+        Converts a string to a MapType enum.
+        """
+        try:
+            return cls[name.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid map name: {name}")
 
 
 
@@ -32,7 +41,11 @@ class Map:
             case MapType.CLASSIC:
                 self.graph = Classic
                 self.bonuses = classicBonusVals
+                
             # Currently do not have asia implemented but showing how it would be instantiated.
             case MapType.ASIA:
                 self.graph = Classic
                 self.bonuses = classicBonusVals # should be AsiaBonusVals
+        self.territoryNames = [node["name"] for _, node in sorted(self.graph.nodes(data=True), key=lambda x: x[0])]
+
+        self.territoryNames = [node["name"] for _, node in self.graph.nodes(data=True)]
