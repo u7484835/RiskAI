@@ -2,8 +2,9 @@
 
 import networkx as nx
 from enum import Enum
-from typing import Optional, Tuple, TypeAlias, TypedDict
+from typing import Optional, Tuple, TypeAlias, TypedDict, List
 from maps.mapStructures import Map
+from interface import *
 
 
 class CardType(Enum):
@@ -51,19 +52,12 @@ to be played in the order given.
 """
 
 
-# Should I keep as class or make type alias?
-class Draft:
-    """
-    Represents the draft phase of the player to be taken.
-
-    Attributes:
-        trade (Trade): The trade (if it will occur) and the associated cards.
-        drafts (list[(int, int)]): A list of locations formatted as (territory ID, amount of troops) to place troops.  
-    """
-    
-    def __init__(self, trade: Trade, drafts : list[(int, int)]):
-        self.trade = trade
-        self.drafts = drafts
+Draft: TypeAlias = Tuple[Trade, list[(int, int)]]
+"""
+Represents the draft phase of the player to be taken. Holds The trade (if 
+it will occur) and the associated cards, and a list of locations formatted 
+as (territory ID, amount of troops) to place troops. 
+"""
 
 
 Attack: TypeAlias = list[Tuple[int, int, int, int]]
@@ -88,6 +82,11 @@ Move: TypeAlias = Tuple[Draft, Attack, Fortify]
 Represents a full turn which a player should take. Will be the output of the AI agent.
 """
 
+
+Territories: TypeAlias = List[int]
+"""
+Represents a set of territories on the map. Each int represented the ID of a node. 
+"""
 
 
 # Consider how to be holding the data of the AI player. Could be in here with an added flag, 
@@ -155,25 +154,62 @@ class GameState:
     Attributes:
         map (Map): The graph structure holding all territories, connections, and owners grouped
         with the bonuses and their values
-        playerID (int) : The number ID of the user player which the AI agent plays as
+        agentID (int) : The number ID of the user player which the AI agent plays as
         turn (int): The current turn number
         playerDict (PlayerDict): A dictionary holding details of all players for both display and 
         decision making
-        playerRelations (RelationShipMatrix): A matrix holding the relationships between all players
+        relationsMatrix (RelationShipMatrix): A matrix holding the relationships between all players
         cards (Cards): A list of cards held by the user player 
 
     Methods:
-        __init__(self, graph: nx.Graph, turn : int, playerDict : PlayerDict, playerRelations
+        __init__(self, graph: nx.Graph, turn : int, playerDict : PlayerDict, relationsMatrix
         : RelationShipMatrix, cards : Cards)): Initializes a new instance of the GameState class.
         heuristic() : Calculates how favourable the current GameState is. 
     """
-    def __init__(self, map: Map, playerID: int, turn : int, playerDict : PlayerDict, playerRelations : RelationShipMatrix, cards : Cards):
+    def __init__(self, mapType: MapType, map: Map, agentID: int, turn : int, playerDict : PlayerDict, relationsMatrix : RelationShipMatrix, cards : Cards):
+        self.mapType = mapType
         self.map = map
-        self.playerID = playerID
+        self.agentID = agentID
         self.turn = turn
         self.playerDict = playerDict
-        self.playerRelations = playerRelations
+        self.relationsMatrix = relationsMatrix
         self.cards = cards
+        
+        
+        
+    def __init__(self):
+        self.mapType = getMapType()
+        self.map = Map(self.mapType)
+        self.playerList = getPlayersList()
+        self.agentID = getAgentID(self.playerList)
+        getTroopInfo(self.playerList, self.map)
+        self.turn = 1
+        self.playerDict = {}
+        
+        # Initiliases playerDict with player IDs and colours
+        for i in range(len(self.playerList)):
+            # Correctly initialise other player data after deciding amounts
+            self.playerDict[i] = {"id": i, "colour": self.playerList[i], "troops": 0, "diceAggression": 0, "territoryAggression": 0, "bonusAggression": 0, "bonusesHeld": [], "cardsHeld": 0, "dangerLevel": 0}
+            
+        # Initialises all player troop totals correctly    
+        for nodeID in self.map.nodes:
+            self.playerDict[self.map.nodes[nodeID]["player"]]["troops"] += self.map.nodes[nodeID]["troops"]
+            
+        
+        # Initilaises players relationship matrix with starting friendliness score of 50    
+        self.relationsMatrix = [[0 for _ in range(len(self.playerList))] for _ in range(len(self.playerList))]
+    
+        # Players have no relationship with themselves, should always be 0
+        for i in range(len(self.playerList)):
+            for j in range(len(self.playerList)):
+                if i == j:
+                    self.relationsMatrix[i][j] = 0
+                    
+                    
+        self.cards = []
+
+        
+        
         
     # Decide whether to have the heuristic as a method or a function in a separate file. 
     def heuristic(self) -> int:

@@ -1,6 +1,7 @@
 import click
 from structures import *
 from actions import *
+from typing import List
 
 
 def gameStateHeuristic(gameState : GameState) -> int:
@@ -36,6 +37,34 @@ def gameStateHeuristic(gameState : GameState) -> int:
     - Danger by troops/bonuses/cards/ aggression from other players is vital
     """
     pass
+
+
+
+def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
+    """
+    Given a list of target territories, calculates the required moves to attack 
+    all of them in the most efficient possible way.
+    """
+    # Filter graph for only externally owned territories
+    
+    # node weights for MST
+    
+    # MST
+    pass
+    
+
+def fortify(gameState : GameState, territories : Territories) -> Fortify:
+    """
+    Given a list of target territories, calculates the best possible 
+    fortify action
+    """
+    # Applies a fortify heuristic? Then takes into account desired territories?
+    pass
+    
+
+
+
+
 
 # !Note: Iterative deepening search should save all maps of hard calculation  
 # paths into a dictionary for lookup. Iterative deepening should then also 
@@ -114,6 +143,9 @@ def ids (gameState : GameState, timeConstraint : int) -> Move:
 
 
 
+
+
+
 def riskAgent(gameState : GameState) -> Move:
     """
     Main function to call AI agent. Gets move from iterative deepening search.
@@ -124,5 +156,8 @@ def riskAgent(gameState : GameState) -> Move:
     """
     pass
     
+    
+def main():
+    pass
     
     

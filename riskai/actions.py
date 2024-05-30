@@ -12,15 +12,15 @@ class ActionType(Enum):
     KILLPLAYER = 1
     TAKEBONUS = 2
     BREAKBONUS = 3
-    HITSTACK = 4
-    CHIPPLAYER = 5
-    EXPANDBORDERS = 6
-    CREATEPOSITION = 7
+    HITSTACK = 4 # lower priority 
+    CHIPPLAYER = 5 # l
+    EXPANDBORDERS = 6 
+    CREATEPOSITION = 7 # l
     DEFENDBORDERS = 8
     TAKECARD = 9
     MIGRATE = 10
     TAKETERRITORIES = 11
-    FLEE = 12
+    FLEE = 12 # l
     NOATTACK = 13
     
     
@@ -44,7 +44,7 @@ class Action:
 # !These are all a very rough draft of the action implementations. Some might be 
 # entirely removed or combined, and the parameters to most will be significantly changed. 
 
-# !NoTE: All action classes will have a prune method which will take the gamestate 
+# !NOTE: All action classes will have a prune method which will take the gamestate 
 # and output a boolean for the pruning discussed in pruneActionNodes().
 class KillPlayer(Action):
     """
