@@ -3,6 +3,7 @@
 import click
 from structures import *
 from maps.mapStructures import MapType, Map
+from typing import Optional
 
 
 
@@ -14,6 +15,10 @@ def getMapType() -> MapType:
     Asks the user what map the game is being played on.
 
     """
+    mapList = [elem.name.capitalize() for elem in MapType]
+    mapInput = click.prompt("Please enter the map to play on:", type=click.Choice(mapList, case_sensitive=True))
+    return MapType.from_str(mapInput)
+    
     while True:
         mapInput = click.prompt("Please enter the map to play on:", type=str)
         try:
@@ -38,12 +43,7 @@ def getCapitalsInfo() -> bool:
     return click.prompt("Is this game a capitals conquest game?", type=bool)
 
 
-
-
-# ---------------------------- Input - Game interface ----------------------------
-# Interface features to be called when game is running. 
-
-
+# Dislike that colours are defined here. Consider a different spot fo the constant. 
 COLOURS = ["blue", "green", "yellow", "orange", "red", "pink", "black", "white", "purple"]
 
 def getPlayersList() -> list[str]:
@@ -51,7 +51,7 @@ def getPlayersList() -> list[str]:
     Gets information about how many players there are, order of players, colours associated with players.
     Should update main data structures. 
     """
-    numPlayers = click.prompt("Please enter the number of players:", type=int)
+    numPlayers = click.prompt("Please enter the number of players:", type= click.IntRange(min=2))
     
     playersList = []
         
@@ -84,84 +84,193 @@ def getAgentID(playersList : list[str]) -> int:
 
 
 
-def getTroopInfo(playersList : list[str], map : Map):
+def getTroopSetup(playersList : list[str], map : Map):
     """
     Gets information the amount of troops on each territory, and the owner of each territory.
     Should update main data structures.
     """
     
     for nodeID in map.graph.nodes:
-        agentColour = click.prompt(f"Please enter which player colour owns {map.graph.nodes[nodeID]["name"]}:", type=click.Choice(playersList, case_sensitive=True))
+        agentColour = click.prompt(f"Enter which player colour owns {map.graph.nodes[nodeID]["name"]}:", type=click.Choice(playersList, case_sensitive=True))
         map.graph.nodes[nodeID]["player"] = playersList.index(agentColour)
         
-        troopsNum = click.prompt(f"Please enter the number of troops on territory {map.graph.nodes[nodeID]["name"]}:", type=int)
-        
-        while troopsNum < 1:
-            troopsNum = click.prompt(f"Having {troopsNum} troops on a territory is invalid. Please enter the positive number of troops shown for {map.graph.nodes[nodeID]["name"]}.")
-            
+        troopsNum = click.prompt(f"Enter the number of troops on territory {map.graph.nodes[nodeID]["name"]}:", type= click.IntRange(min=1))
+
         map.graph.nodes[nodeID]["troops"] = troopsNum
         
+        
+def setupGame() -> GameState:
+    newGameState = GameState()
+            
+
+# ---------------------------- Input - Game interface ----------------------------
+# Interface features to be called when game is running. 
 
 
+        
 # !Note: The player parameter for all turninfo related functions may not be necesarry. It could be implicit. 
-def getDraftInfo(player : int, map : Map) -> Draft:
+def getTerritory(map : Map, player : Optional[int]) -> int:
     """
     Gets which player drafted, how many troops they drafted, where they drafted, and whether they traded in cards.
+    """    
+    territory = click.prompt(f"Enter the territory:", type=click.Choice(map.territoryNames, case_sensitive=True))
+    
+    # !Could be dodgy code, does the iterator go in sequence??
+    territoryID = map.territoryNames.index(territory) + 1
+    
+    if player is not None:
+        while map.graph.nodes[territoryID]["player"] != player:
+            click.echo(f"Territory {territory} not owned by player.")
+            territory = click.prompt(f"Enter the territory:", type=click.Choice(map.territoryNames, case_sensitive=True))
+            
+    return territoryID
+
+
+        
+
+# !Note: The player parameter for all turninfo related functions may not be necesarry. It could be implicit. 
+def getDraftOpp(player : int, map : Map, playerDict : PlayerDict):
+    """
+    For an opponent's move, gets which player drafted, how many troops they drafted, 
+    where they drafted, and whether they traded in cards.
     """
     repititionFlag = True
     
+    click.echo("Drafting troops:")
     while repititionFlag:
-        territory = click.prompt(f"Please enter which territory is being drafted to:", type=click.Choice(map.territoryNames, case_sensitive=True))
+        territoryID = getTerritory(map, player)
         
-        # !Could be dodgy code, does the iterator go in sequence??
-        territoryID = map.territoryNames.index(territory) + 1
-        
-        while map.graph.nodes[territoryID]["player"] != player:
-            click.echo(f"Territory {territory} not owned by player.")
-            territory = click.prompt(f"Please enter which territory is being drafted to:", type=click.Choice(map.territoryNames, case_sensitive=True))
+        troopsNum = click.prompt("Enter the number of troops on deployed:", type = click.IntRange(min=1))
 
-        troopsNum = click.prompt(f"Please enter the number of troops on deployed to {territory}:", type=int)
+        playerDict[player]["troops"] += troopsNum
+        map.graph.nodes[territoryID]["troops"] += troopsNum
             
-        while troopsNum < 1:
-            troopsNum = click.prompt(f"Having {troopsNum} troops on a territory is invalid. Please enter the positive number of troops shown for {territory}:")
-            
-        repititionFlag = click.prompt("Did the player trade in cards?", type=bool)
+        repititionFlag = click.prompt("Is there another territory drafted to?", type=bool)
             
         
             
+def getAttackOpp(player : int, map : Map, playerDict : PlayerDict) -> Tuple[bool, Optional[int]]:
+    """
+    For an opponent's move, gets where which player attacked, what territory was attacked, how many troopes were lost on each side, 
+    how many troops were moved to the new terrtory. Apply changes directly to map. If a player is killed, terminates early and 
+    returns the ID of the player killed. Otherwise returns None. Also outputs whether a territory was captured for card updates. 
+    """
     
+    repititionFlag = click.prompt("Did the player make any attacks?", type=bool)    
+    # Cards are awarded if a player captures a territory
+    captureFlag = False
+    
+    while repititionFlag:
+        
+        # Gets territory player is attacking from
+        click.echo("Territory attacking. ", nl=False)
+        territoryIDAtt = getTerritory(map, player)
+        
+        # Gets defending territory
+        click.echo("Territory defending. ", nl=False)
+        territoryIDDef = getTerritory(map, None)
+        # Gets ID of player who owns the attacked territory
+        attackedPlayer = map.graph.nodes[territoryIDDef]["player"]
 
 
-def getAttackInfo() -> Attack:
-    """
-    Gets where which player attacked, what territory was attacked, how many troopes were lost on each side, 
-    how many troops were moved to the new terrtory.
-    """
-    pass
+        # Gets number of troops lost while defending
+        troopsLostDef = click.prompt(f"Enter the number of defending troops lost:", type = click.IntRange(min=0, max=map.graph.nodes[territoryIDDef]["troops"]))
+        playerDict[attackedPlayer]["troops"] -= troopsLostDef
+
+            
+        # Gets number of troops lost while attacking
+        troopsLostAtt = click.prompt(f"Enter the number of attacking troops lost:", type = click.IntRange(min=0, max=map.graph.nodes[territoryIDAtt]["troops"]))
+        map.graph.nodes[territoryIDAtt]["troops"] -= troopsLostAtt
+        playerDict[attackedPlayer]["troops"] -= troopsLostAtt
 
 
-def getFortifyInfo() -> Fortify:
+        
+
+        # Checks whether territory was taken
+        if troopsLostDef >= map.graph.nodes[territoryIDDef]["troops"]:
+            captureFlag = True
+            # If territory was taken, gets number of troops moved to attacked territory
+            troopsMoved = click.prompt(f"Enter the number of troops moved to the attacked territory:", type=click.IntRange(min=3, max=map.graph.nodes[territoryIDAtt]["troops"]-1))
+            
+            # Reassigns territory, adds opponents new troops to territory, updates old territory troops
+            map.graph.nodes[territoryIDDef]["player"] = player
+            map.graph.nodes[territoryIDDef]["troops"] = troopsMoved
+            map.graph.nodes[territoryIDAtt]["troops"] -= troopsMoved
+            
+            # Updates territory counts for attacking and attacked players
+            playerDict[player]["territories"] += 1
+            playerDict[attackedPlayer]["territories"] -= 1
+            
+            # If all of an opponents territories are taken, they are eliminated, 
+            # and their cards are given to the attacker.
+            if playerDict[attackedPlayer]["territories"] == 0:
+                return (True, attackedPlayer)
+                
+        else:
+            # If territory was not captured, updates defending troop count
+            map.graph.nodes[territoryIDDef]["troops"] -= troopsLostDef
+            
+        repititionFlag = click.prompt("Was there another territory attacked?", type=bool)    
+    
+    return (captureFlag, None)
+
+
+
+def getFortifyOpp(player : int, map : Map):
     """
     Gets which player fortified, where they fortified from, where they fortified to, and how many troops they fortified.
     """
-    pass
+    fortifyFlag = click.prompt("Did the player fortify?", type=bool)    
+    
+    if fortifyFlag:
+        # Gets territory player is fortifying from
+        click.echo("Territory fortifying from. ", nl=False)
+        fortFromID = getTerritory(map, player)
+        
+        # Gets territory player is fortifying to
+        click.echo("Territory fortifying to. ", nl=False)
+        fortToID = getTerritory(map, player)
+        
+        # Ensures that troops aren't moved from a territory to itelf
+        while fortFromID == fortToID:
+            click.echo("Territories must be different. Territory fortifying to. ", nl=False)
+            fortToID = getTerritory(map, player)
+            
+        # Gets number of troops moved, updates territories on map
+        troopsMoved = click.prompt(f"Enter the number of troops moved:", type = click.IntRange(min=1, max=map.graph.nodes[fortFromID]["troops"]))
+        map.graph.nodes[fortFromID]["troops"] -= troopsMoved
+        map.graph.nodes[fortToID]["troops"] += troopsMoved
 
 
-def getTurn():
+
+
+def getTurn(player : int, gameState: GameState) -> bool:
     """
-    Gets info about the amount of troops a player drafted, where they played the draft,
-    whether they traded in cards, what territories they attacked, whether they killed a player (needed or inferred?) 
-    what territories they left troops in when attacking, and where they fortified to. 
-    
-    Should update internal data structures.
-    
-    
-    Requires:
-        - `getDraftInfo()`
-        - `getAttackInfo()`
-        - `getFortifyInfo()`
+    Calls draft, attack and fortify functions to execute the interface between the turns played 
+    by opponents in game and the internal representation. Outputs a bool to indicate whether the game has concluded.
     """
-    pass
+    getDraftOpp(player, gameState.map, gameState.playerDict)
+    # Gets data on whether a player was killed, and if the player captured at least one territory
+    captureFlag, killedPlayer = getAttackOpp(player, gameState.map, gameState.playerDict)
+    
+    # If a player was killed, their cards are given to the attacker
+    while killedPlayer is not None:
+        gameState.playerDict[player]["cards"] += gameState.playerDict[killedPlayer]["cards"]
+        gameState.playersAlive.remove(killedPlayer)
+        
+        # If only one player is left, the game is over so terminate early. 
+        if len(gameState.playersAlive) == 1:
+            return True
+        
+        # Allow the player to continue attacking
+        _, killedPlayer = getAttackOpp(player, gameState.map, gameState.playerDict)
+        
+    getFortifyOpp(player, gameState.map)
+    
+    if captureFlag:
+        gameState.playerDict[player]["cards"] += 1
+    
+    return False
 
 
 
