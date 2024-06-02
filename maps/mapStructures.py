@@ -1,7 +1,7 @@
 import networkx as nx
 from enum import Enum
 from typing import TypedDict
-from classic import *
+from .classic import *
 
 class MapType(Enum):
     """
