@@ -1,6 +1,7 @@
 import click
-from interface import getSetupInfo, instructTurn, displayGameover
-from riskAI import riskAgent
+from .interface import *
+from .structures import GameState
+from .riskAI import riskAgent
 
 def playRound():
     pass
@@ -11,9 +12,9 @@ def playOpponentsTurn():
     # remember when inidividual player attacks to check each time for termination
     pass
 
-def getUserTurn():
+def getAgentTurn():
     action = riskAgent()
-    instructTurn(action)
+    executeAgentTurn(action)
     pass
 
 def funcPrompt() -> int:
@@ -28,11 +29,59 @@ def funcPrompt() -> int:
     return click.prompt("... \n", type=click.IntRange(min=1, max=7))
 
 
-def singleAgentGame():
-    pass
+def singleAgentGame(gameState : GameState):
+    # Game loops infinitely until a player achieves victory
+    while True:
+        # Loops over all alive players
+        for i in gameState.playersAlive:
+            # Agent players get AI moves
+            if i == gameState.agentID:
+                getAgentTurn()
+                winFlag = executeAgentTurn()
+                # Exit loop if player wins
+                if winFlag:
+                    displayGameover(i)
+                    return
+                
+            # Opponent players give system update of what's happened
+            else:
+                winFlag = getTurn(i, gameState)
+                # Exit loop if opponent wins
+                if winFlag:
+                    displayGameover(i)
+                    return
+                
+        gameState.round += 1
 
-def variableAgentGame():
-    pass
+def variableAgentGame(gameState : GameState):
+    # recreating player list
+    playerList = [player['colour'] for player in gameState.playerDict.values()]
+    agentList = getAgentList(playerList)
+    
+    # Game loops infinitely until a player achieves victory
+    while True:
+        # Loops over all alive players
+        for i in gameState.playersAlive:
+            click.echo(f"It is {gameState.playerDict[i]['colour']}'s turn")
+            # Agent players get AI moves
+            if i in agentList:
+                gameState.agentID = i
+                getAgentTurn()
+                winFlag = executeAgentTurn()
+                # Exit loop if player wins
+                if winFlag:
+                    displayGameover(i)
+                    return
+                
+            # Opponent players give system update of what's happened
+            else:
+                winFlag = getTurn(i, gameState)
+                # Exit loop if opponent wins
+                if winFlag:
+                    displayGameover(i)
+                    return
+        
+    
 
 def bfsEval():
     pass
@@ -41,40 +90,34 @@ def heuristicEval():
     pass
 
 def debugVariableGame():
-    pass
+    pass    
 
 
-
-
-
-
-
-def selectFunctionality():
+@click.command()
+def main():
+    # Initialises gamestate which holds all relevant info 
+    # about game in progress
+    gameState = setupGameState()
+    
+    # Chooses and executes desired game functionality
     match funcPrompt():
         case 1:
-            singleAgentGame()
+            singleAgentGame(gameState)
         case 2:
-            variableAgentGame()
+            variableAgentGame(gameState)
         case 3:
-            bfsEval()
+            bfsEval(gameState)
         case 4:
-            heuristicEval()
+            heuristicEval(gameState)
         case 5:
-            debugVariableGame()
+            debugVariableGame(gameState)
         case 6:
             pass
         case 7:
             print("Exiting...")
-
-
-@click.command()
-def main(blizzards : bool, fog : bool):
-    # Handles CLI interactions implemented by click package
-    getSetupInfo()
-    # Loop placeholder for main game loop which handles all actions. Will terminate
-    # once the player is eliminated or wins the game.
-    while True:
-        playOpponentsTurn()
-        getUserTurn()
-    displayGameover()
     
+    
+
+
+if __name__ == "__main__":
+    main()

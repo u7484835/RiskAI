@@ -1,6 +1,6 @@
 import click
-from structures import *
-from actions import *
+from .structures import *
+from .actions import *
 from typing import List
 
 
@@ -156,8 +156,5 @@ def riskAgent(gameState : GameState) -> Move:
     """
     pass
     
-    
-def main():
-    pass
-    
+
     

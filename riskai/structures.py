@@ -4,7 +4,6 @@ import networkx as nx
 from enum import Enum
 from typing import Optional, Tuple, TypeAlias, TypedDict, List
 from maps.mapStructures import Map, MapType
-from .interface import *
 
 
 class CardType(Enum):
@@ -53,7 +52,7 @@ to be played in the order given.
 """
 
 
-DraftPlayer: TypeAlias = Tuple[Trade, list[(int, int)]]
+Draft: TypeAlias = Tuple[Trade, list[(int, int)]]
 """
 Represents the draft phase of the player to be taken. Holds The trade (if 
 it will occur) and the associated cards, and a list of locations formatted 
@@ -61,7 +60,7 @@ as (territory ID, amount of troops) to place troops.
 """
 
 
-AttackPlayer: TypeAlias = list[Tuple[int, int, int, int]]
+Attack: TypeAlias = list[Tuple[int, int, int, int]]
 """
 Represents what attacks user player should make. Each tuple in 
 list is one attack. Empty list means no attacks. ints are structured
@@ -69,7 +68,7 @@ as (territoryID from, territoryID to, amount of troops to attack with, amount of
 """
 
 
-FortifyPlayer: TypeAlias = Optional[Tuple[int, int, int]]
+Fortify: TypeAlias = Optional[Tuple[int, int, int]]
 """
 Represents what fortify user player should make. If None, no fortify.
 ints in tuple are structured as (territoryID from, territoryID to, amount of troops to move).
@@ -78,50 +77,7 @@ ints in tuple are structured as (territoryID from, territoryID to, amount of tro
 
 
 
-MovePlayer: TypeAlias = Tuple[DraftPlayer, AttackPlayer, FortifyPlayer]
-"""
-Represents a full turn which a player should take. Will be the output of the AI agent.
-"""
-
-
-
-# List of actions played by opponent players, with outcome rather than intent info
-
-TradeOpp: TypeAlias = Optional[Tuple[CardType, CardType, CardType]]
-"""
-Represents whether a trade action is intending to be played. It will be 
-None if no trade is occuring, otherwise it will be a tuple of three cards 
-to be played in the order given. 
-"""
-
-
-DraftOpp: TypeAlias = Tuple[Trade, list[(int, int)]]
-"""
-Represents the drafts an opponent took. Holds The trade (if 
-it will occur) and the associated cards, and a list of locations formatted 
-as (territory ID, amount of troops) to place troops. 
-"""
-
-
-AttackOpp: TypeAlias = list[Tuple[int, int, int, int, Optional[int]]]
-"""
-Represents the attacks an opponent took. Each tuple in 
-list is one attack. Empty list means no attacks. ints are structured
-as (territoryID from, territoryID to, defending troops lost, 
-amount of attacking troops lost, amount of troops to move).
-"""
-
-
-FortifyOpp: TypeAlias = Optional[Tuple[int, int, int]]
-"""
-Represents what fortify user player should make. If None, no fortify.
-ints in tuple are structured as (territoryID from, territoryID to, amount of troops to move).
-"""
-
-
-
-
-MoveOpp: TypeAlias = Tuple[DraftPlayer, AttackPlayer, FortifyPlayer]
+Move: TypeAlias = Tuple[Draft, Attack, Fortify]
 """
 Represents a full turn which a player should take. Will be the output of the AI agent.
 """
@@ -166,7 +122,7 @@ class PlayerDict(TypedDict):
         
         bonusesHeld (int): amount of bonuses held by the player.
         
-        cardsHeld (int): amount of cards held by the player.
+        cardsNum (int): amount of cards held by the player.
         
         dangerLevel (int): An overall measure of how dangerous the player is to the AI.
     """
@@ -178,7 +134,8 @@ class PlayerDict(TypedDict):
     territoryAggression: int
     bonusAggression: int
     bonusesHeld: list[str]
-    cardsHeld: int
+    prevIncome: int
+    cardsNum: int
     dangerLevel: int
         
         
@@ -220,41 +177,6 @@ class GameState:
         self.cards = cards
         
         
-        
-    def __init__(self):
-        self.mapType = getMapType()
-        self.map = Map(self.mapType)
-        self.playerList = getPlayersList()
-        self.playersAlive = [i for i in range(len(self.playerList))]
-        self.agentID = getAgentID(self.playerList)
-        getTroopSetup(self.playerList, self.map)
-        self.round = 1
-        self.playerDict = {}
-        
-        # Initiliases playerDict with player IDs and colours
-        for i in range(len(self.playerList)):
-            # Correctly initialise other player data after deciding amounts
-            self.playerDict[i] = {"id": i, "colour": self.playerList[i], "troops": 0, "territories": 0, "diceAggression": 0, "territoryAggression": 0, "bonusAggression": 0, "bonusesHeld": [], "cardsHeld": 0, "dangerLevel": 0}
-            
-        # Initialises all player troop totals correctly    
-        for nodeID in self.map.nodes:
-            currPlayer = self.map.nodes[nodeID]["player"]
-            self.playerDict[currPlayer]["troops"] += self.map.nodes[nodeID]["troops"]
-            self.playerDict[currPlayer]["territories"] += 1
-
-            
-        
-        # Initilaises players relationship matrix with starting friendliness score of 50    
-        self.relationsMatrix = [[0 for _ in range(len(self.playerList))] for _ in range(len(self.playerList))]
-    
-        # Players have no relationship with themselves, should always be 0
-        for i in range(len(self.playerList)):
-            for j in range(len(self.playerList)):
-                if i == j:
-                    self.relationsMatrix[i][j] = 0
-                    
-                    
-        self.cards = []
 
         
         
