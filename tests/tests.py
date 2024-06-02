@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import scipy as sp
+import os
 
 
 
@@ -16,7 +17,8 @@ bonus_color_map = {
     }
 
 
-background_image = mpimg.imread('/path/to/your/background/image.png')
+background_image_path = os.path.join('tests', 'BlankSlate3.png')
+background_image = mpimg.imread(background_image_path)
 
 
 
@@ -31,13 +33,18 @@ def drawTest():
     posConfig = nx.kamada_kawai_layout(Classic)
     ax.imshow(background_image, extent=[0, background_image.shape[1], 0, background_image.shape[0]])
 
-    nx.draw(Classic, pos = new2ClassicPosCoords, with_labels=True, font_weight="bold", node_color=node_colors)
-    plt.savefig("ClassicGraphTest.png")
+    nx.draw(Classic, pos = new3ClassicPosCoords, with_labels=True, font_weight="bold", node_color=node_colors)
     
-    new2Coords = newClassicPosCoords
-    for key in new2Coords.keys():
-        new2Coords[key] = [new2Coords[key][0] - 260, new2Coords[key][1] - 230]
-    print(new2Coords)
+    # Path to save the output image
+    output_image_path = os.path.join('tests', 'ClassicGraphBackGround.png')
+
+    # Save the figure with the custom background
+    plt.savefig(output_image_path, bbox_inches='tight')
+    
+    new3Coords = new2ClassicPosCoords
+    for key in new3Coords.keys():
+        new3Coords[key] = [new3Coords[key][0] - 5, new3Coords[key][1] + 258]
+    print(new3Coords)
     
     
 if __name__ == "__main__":
