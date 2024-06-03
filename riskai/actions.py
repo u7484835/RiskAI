@@ -1,6 +1,7 @@
 # Framework to encode all abstract actions, provide pruning 
 # # techniques and describe their purpose. 
 from enum import Enum
+from typing import TypeAlias, Set
 
 
 class ActionType(Enum):
@@ -16,13 +17,40 @@ class ActionType(Enum):
     CHIPPLAYER = 5 # l
     EXPANDBORDERS = 6 
     CREATEPOSITION = 7 # l
-    DEFENDBORDERS = 8
-    TAKECARD = 9
-    MIGRATE = 10
-    TAKETERRITORIES = 11
+    MIGRATE = 8
+    TAKETERRITORIES = 9
+    TAKECARD = 10
+    DEFENDBORDERS = 11
     FLEE = 12 # l
     NOATTACK = 13
     
+    
+# Going with attack/foritfy territory list underpinning actions. 
+# This controls the graph structure of action sequencing. 
+actionSequenceDict = {
+    ActionType.KILLPLAYER: [act for act in ActionType if act not in {ActionType.TAKECARD, ActionType.DEFENDBORDERS, 
+                                                                     ActionType.NOATTACK}],
+    ActionType.TAKEBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKECARD, 
+                                                                    ActionType.DEFENDBORDERS, ActionType.NOATTACK}],
+    ActionType.BREAKBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS,
+                                                                     ActionType.TAKECARD, ActionType.DEFENDBORDERS, 
+                                                                     ActionType.NOATTACK}],
+    ActionType.HITSTACK: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS, 
+                                                                   ActionType.BREAKBONUS, ActionType.TAKECARD, 
+                                                                   ActionType.DEFENDBORDERS, ActionType.NOATTACK}],
+    ActionType.CHIPPLAYER: [ActionType.CHIPPLAYER, ActionType.EXPANDBORDERS, ActionType.CREATEPOSITION, ActionType.TAKECARD, 
+                            ActionType.MIGRATE, ActionType.TAKETERRITORIES],
+    ActionType.EXPANDBORDERS: [ActionType.EXPANDBORDERS, ActionType.CREATEPOSITION, ActionType.TAKETERRITORIES],
+    ActionType.CREATEPOSITION: [ActionType.CREATEPOSITION, ActionType.MIGRATE, ActionType.TAKETERRITORIES],
+    ActionType.MIGRATE: [ActionType.TAKETERRITORIES],
+    ActionType.TAKETERRITORIES: [ActionType.TAKETERRITORIES],
+    ActionType.TAKECARD: [ActionType.DEFENDBORDERS],
+    ActionType.DEFENDBORDERS: [],
+    ActionType.FLEE: [],
+    ActionType.NOATTACK: []
+}
+
+
     
 
 class Action:
@@ -38,6 +66,14 @@ class Action:
     """
     def __init__(self, action: ActionType):
         self.action = action
+        
+    def __eq__(self, other):
+        if not isinstance(other, Action):
+            return False
+        return self.action == other.action
+
+    def __hash__(self):
+        return hash(self.action)
 
 
 
@@ -52,14 +88,22 @@ class KillPlayer(Action):
 
     Attributes:
         player (int): The player ID of the player to be killed.
-        path (list[int]): The attack moves needed to take the kill
+        territories (list[int]): The territories needed to capture to achieve this
     """
-    def __init__(self, player : int, path : list[int]):
+    def __init__(self, player : int, territories : list[int]):
+        super().__init__(ActionType.KILLPLAYER)
         self.player = player
         # Decide later on whether to keep kill path in this action, 
         # and how to store it. 
-        self.path = path
-    pass
+        self.territories = territories
+        
+    def __eq__(self, other):
+        if not isinstance(other, KillPlayer):
+            return False
+        return self.player == other.player
+    
+    def __hash__(self):
+        return hash((self.player, self.territories))
 
 
 
@@ -73,19 +117,28 @@ class TakeBonus(Action):
         player (int): The ID of the player whose bonus is getting stolen.
         !Should be None or 0 if neutral territory.
         bonus (str): The bonus to be taken
-        path (list[int]): The attack moves needed to take the bonus
+        territories (list[int]): The territories needed to capture to achieve this
 
     """
-    def __init__(self, player : int, bonus : str, path : list[int]):
+    def __init__(self, player : int, bonus : str, territories : list[int]):
+        super().__init__(ActionType.TAKEBONUS)
         self.player = player
         # Decide later on whether to keep the path in this action, 
         # and how to store it. 
-        self.path = path
+        self.territories = territories
         # Also decide how bonuses should be represented. Currently all 
         # bonuses have a specific enumeration, could I make this 
         # have a central class?
         self.bonus = bonus
-    pass
+    
+
+        def __eq__(self, other):
+                if not isinstance(other, TakeBonus):
+                    return False
+                return self.bonus == other.bonus
+            
+        def __hash__(self):
+            return hash((self.player, self.territories, self.bonus))
 
 
 class BreakBonus(Action):
@@ -97,17 +150,25 @@ class BreakBonus(Action):
     Attributes:
         player (int): The ID of the player whose bonus is getting broken.
         bonus (str): The bonus to be broken
-        path (list[int]): The attack moves needed to break the bonus
+        territory (int): The territories needed to capture to achieve this
 
     """
-    def __init__(self, player : int, bonus : str, path : list[int]):
+    def __init__(self, player : int, bonus : str, territory : int):
+        super().__init__(ActionType.BREAKBONUS)
         self.player = player
         # Decisions as mentioned above
-        self.path = path
+        self.territory = territory
         # Decisions as mentioned above
         self.bonus = bonus
-    pass
+    
 
+    def __eq__(self, other):
+        if not isinstance(other, BreakBonus):
+            return False
+        return self.bonus == other.bonus
+
+    def __hash__(self):
+            return hash((self.player, self.territory, self.bonus))
 
 
 class HitStack(Action):
@@ -118,16 +179,23 @@ class HitStack(Action):
     Attributes:
         player (int): The ID of the player to attack
         territory (int): The territory ID to hit
-        path (list[int]): The attack moves needed to attack it
 
     """
-    def __init__(self, player : int, territory : int, path : list[int]):
+    def __init__(self, player : int, territory : int):
+        super().__init__(ActionType.HITSTACK)
         self.player = player
-        self.path = path
-        # Might be unnecessary as path should terminate at said territory. 
-        # That said, it is useful for action generation rather than calculation. 
         self.territory = territory
-    pass
+    
+
+    def __eq__(self, other):
+        if not isinstance(other, HitStack):
+            return False
+        return self.territory == other.territory
+    
+    def __hash__(self):
+            return hash((self.player, self.territory))
+    
+
 
 class ChipPlayer(Action):
     """
@@ -136,14 +204,20 @@ class ChipPlayer(Action):
     Attributes:
         player (int): The ID of the player to attack
         territories (int): The territory IDs to hit
-        path (list[int]): The attack moves needed to attack it
-
     """
-    def __init__(self, player : int, territories : list[int], path : list[int]):
+    def __init__(self, player : int, territories : list[int]):
+        super().__init__(ActionType.CHIPPLAYER)
         self.player = player
-        self.path = path
         self.territories = territories
-    pass
+    
+
+    def __eq__(self, other):
+        if not isinstance(other, ChipPlayer):
+            return False
+        return self.player == other.player and self.territories == other.territories
+    
+    def __hash__(self):
+            return hash((self.player, self.territories))
 
 
 class ExpandBorders(Action):
@@ -154,13 +228,21 @@ class ExpandBorders(Action):
 
     Attributes:
         territories (int): The territory IDs to expand to
-        path (list[int]): The attack moves needed to expand
 
     """
-    def __init__(self, territories : list[int], path : list[int]):
+    def __init__(self, territories : list[int]):
+        super().__init__(ActionType.EXPANDBORDERS)
         self.territories = territories
-        self.path = path
-    pass
+    
+
+    def __eq__(self, other):
+        if not isinstance(other, ExpandBorders):
+            return False
+        return self.territories == other.territories
+    
+    def __hash__(self):
+            return hash(self.territories)
+
 
 
 class CreatePosition(Action):
@@ -169,13 +251,20 @@ class CreatePosition(Action):
     
     Attributes:
         territory (int): The end goal territory ID
-        path (list[int]): The attack moves needed to own that territory
-
     """
-    def __init__(self, territories : int, path : list[int]):
-        self.territories = territories
-        self.path = path
-    pass
+    def __init__(self, territory : int):
+        super().__init__(ActionType.CREATEPOSITION)
+        self.territory = territory
+    
+
+    def __eq__(self, other):
+            if not isinstance(other, CreatePosition):
+                return False
+            return self.territory == other.territory
+        
+    def __hash__(self):
+            return hash(self.territory)
+
 
 
 class DefendBorders(Action):
@@ -187,8 +276,13 @@ class DefendBorders(Action):
         borders (list[int]): The border territories to strengthen
     """
     def __init__(self, borders : list[int]):
+        super().__init__(ActionType.DEFENDBORDERS)
         self.borders = borders
-    pass
+    
+
+    def __eq__(self, other):
+        return isinstance(other, DefendBorders)
+
 
 class TakeCard(Action):
     """
@@ -199,8 +293,12 @@ class TakeCard(Action):
         attack (int): The territory ID to take a card in
     """
     def __init__(self, attack : int):
+        super().__init__(ActionType.TAKECARD)
         self.attack = attack
-    pass
+    
+
+    def __eq__(self, other):
+        return isinstance(other, TakeCard)
 
 
 # Could be combined with flee by implementing a more robust location 
@@ -212,28 +310,34 @@ class Migrate(Action):
 
     Attributes:
         territory (int): The end goal territory ID
-        path (list[int]): The attack moves needed to own that territory
-
     """
-    def __init__(self, territories : int, path : list[int]):
-        self.territories = territories
-        self.path = path
-    pass
+    def __init__(self, territory : int):
+        super().__init__(ActionType.MIGRATE)
+        self.territory = territory
+    
+    def __eq__(self, other):
+        return isinstance(other, Migrate)
 
 # !Could be implemented with the iterative deepening search that on depth 1 
 # calculates only taking territories 1 step away etc.
 class TakeTerritories(Action):
     """
-    Simply attack close territories, intended to be a "catch all" to
+    Simply attack a territory, intended to be a "catch all" to
     encapsulate all other possible behaviours. 
 
     Attributes:
-        territories (list[int]): The territories to attack
+        territory (int): The end goal territory ID
 
     """
-    def __init__(self, territories : list[int]):
-        self.territories = territories
-    pass
+    def __init__(self, territory : int):
+        super().__init__(ActionType.TAKETERRITORIES)
+        self.territory = territory
+    
+
+    def __eq__(self, other):
+        if not isinstance(other, TakeTerritories):
+            return False
+        return self.territory == other.territory
 
 
 # Fortify action not included here but should be? Or would it be calculated 
@@ -244,16 +348,21 @@ class Flee(Action):
 
     Attributes:
         territory (int): The end goal territory ID
-        path (list[int]): The attack moves needed to own that territory
-
     """
-    def __init__(self, territories : int, path : list[int]):
-        self.territories = territories
-        self.path = path
-    pass
+    def __init__(self, territory : int):
+        super().__init__(ActionType.FLEE)
+        self.territory = territory
+    
+    def __eq__(self, other):
+        return isinstance(other, Flee)
+
 
 class NoAttack(Action):
     """
     Do not attack, or take a card. Perhaps do not fortify.
     """
-    pass
+    def __init__(self):
+        super().__init__(ActionType.NOATTACK)
+
+
+ActionSeq: TypeAlias = Set[Action]
