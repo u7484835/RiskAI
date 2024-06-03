@@ -2,6 +2,7 @@
 # # techniques and describe their purpose. 
 from enum import Enum
 from typing import TypeAlias, Set
+from .structures import GameState
 
 
 class ActionType(Enum):
@@ -13,15 +14,11 @@ class ActionType(Enum):
     KILLPLAYER = 1
     TAKEBONUS = 2
     BREAKBONUS = 3
-    HITSTACK = 4 # lower priority 
-    CHIPPLAYER = 5 # l
     EXPANDBORDERS = 6 
-    CREATEPOSITION = 7 # l
     MIGRATE = 8
     TAKETERRITORIES = 9
     TAKECARD = 10
     DEFENDBORDERS = 11
-    FLEE = 12 # l
     NOATTACK = 13
     
     
@@ -35,18 +32,11 @@ actionSequenceDict = {
     ActionType.BREAKBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS,
                                                                      ActionType.TAKECARD, ActionType.DEFENDBORDERS, 
                                                                      ActionType.NOATTACK}],
-    ActionType.HITSTACK: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS, 
-                                                                   ActionType.BREAKBONUS, ActionType.TAKECARD, 
-                                                                   ActionType.DEFENDBORDERS, ActionType.NOATTACK}],
-    ActionType.CHIPPLAYER: [ActionType.CHIPPLAYER, ActionType.EXPANDBORDERS, ActionType.CREATEPOSITION, ActionType.TAKECARD, 
-                            ActionType.MIGRATE, ActionType.TAKETERRITORIES],
-    ActionType.EXPANDBORDERS: [ActionType.EXPANDBORDERS, ActionType.CREATEPOSITION, ActionType.TAKETERRITORIES],
-    ActionType.CREATEPOSITION: [ActionType.CREATEPOSITION, ActionType.MIGRATE, ActionType.TAKETERRITORIES],
+    ActionType.EXPANDBORDERS: [ActionType.EXPANDBORDERS, ActionType.TAKETERRITORIES],
     ActionType.MIGRATE: [ActionType.TAKETERRITORIES],
     ActionType.TAKETERRITORIES: [ActionType.TAKETERRITORIES],
     ActionType.TAKECARD: [ActionType.DEFENDBORDERS],
     ActionType.DEFENDBORDERS: [],
-    ActionType.FLEE: [],
     ActionType.NOATTACK: []
 }
 
@@ -88,9 +78,9 @@ class KillPlayer(Action):
 
     Attributes:
         player (int): The player ID of the player to be killed.
-        territories (list[int]): The territories needed to capture to achieve this
+        territories (Set[int]): The territories needed to capture to achieve this
     """
-    def __init__(self, player : int, territories : list[int]):
+    def __init__(self, player : int, territories : Set[int]):
         super().__init__(ActionType.KILLPLAYER)
         self.player = player
         # Decide later on whether to keep kill path in this action, 
@@ -104,6 +94,17 @@ class KillPlayer(Action):
     
     def __hash__(self):
         return hash((self.player, self.territories))
+    
+
+def generateKPSet(player : int, gameState: GameState) -> Set[KillPlayer]:
+    """
+    Generates all possible KillPlayer actions for each alive player. 
+    """
+    actions = set()
+    for aliveP in gameState.playersAlive:
+        if aliveP != player:
+            actions.add(KillPlayer(aliveP, gameState.playerDict[aliveP]["territories"]))
+    return actions
 
 
 
@@ -117,10 +118,10 @@ class TakeBonus(Action):
         player (int): The ID of the player whose bonus is getting stolen.
         !Should be None or 0 if neutral territory.
         bonus (str): The bonus to be taken
-        territories (list[int]): The territories needed to capture to achieve this
+        territories (Set[int]): The territories needed to capture to achieve this
 
     """
-    def __init__(self, player : int, bonus : str, territories : list[int]):
+    def __init__(self, player : int, bonus : str, territories : Set[int]):
         super().__init__(ActionType.TAKEBONUS)
         self.player = player
         # Decide later on whether to keep the path in this action, 
@@ -171,53 +172,6 @@ class BreakBonus(Action):
             return hash((self.player, self.territory, self.bonus))
 
 
-class HitStack(Action):
-    """
-    Attack a player by taking a territory which has a very high 
-    concentration of their troops.
-
-    Attributes:
-        player (int): The ID of the player to attack
-        territory (int): The territory ID to hit
-
-    """
-    def __init__(self, player : int, territory : int):
-        super().__init__(ActionType.HITSTACK)
-        self.player = player
-        self.territory = territory
-    
-
-    def __eq__(self, other):
-        if not isinstance(other, HitStack):
-            return False
-        return self.territory == other.territory
-    
-    def __hash__(self):
-            return hash((self.player, self.territory))
-    
-
-
-class ChipPlayer(Action):
-    """
-    Attack a player's (likely smaller) territories to weaken them.
-
-    Attributes:
-        player (int): The ID of the player to attack
-        territories (int): The territory IDs to hit
-    """
-    def __init__(self, player : int, territories : list[int]):
-        super().__init__(ActionType.CHIPPLAYER)
-        self.player = player
-        self.territories = territories
-    
-
-    def __eq__(self, other):
-        if not isinstance(other, ChipPlayer):
-            return False
-        return self.player == other.player and self.territories == other.territories
-    
-    def __hash__(self):
-            return hash((self.player, self.territories))
 
 
 class ExpandBorders(Action):
@@ -230,7 +184,7 @@ class ExpandBorders(Action):
         territories (int): The territory IDs to expand to
 
     """
-    def __init__(self, territories : list[int]):
+    def __init__(self, territories : Set[int]):
         super().__init__(ActionType.EXPANDBORDERS)
         self.territories = territories
     
@@ -245,37 +199,15 @@ class ExpandBorders(Action):
 
 
 
-class CreatePosition(Action):
-    """
-    Migrate some troops to an unconstested region for survivablility.
-    
-    Attributes:
-        territory (int): The end goal territory ID
-    """
-    def __init__(self, territory : int):
-        super().__init__(ActionType.CREATEPOSITION)
-        self.territory = territory
-    
-
-    def __eq__(self, other):
-            if not isinstance(other, CreatePosition):
-                return False
-            return self.territory == other.territory
-        
-    def __hash__(self):
-            return hash(self.territory)
-
-
-
 class DefendBorders(Action):
     """
     Add troops to borders of territory clusters or bonuses to make 
     them less likely to be attacked.
 
     Attributes:
-        borders (list[int]): The border territories to strengthen
+        borders (Set[int]): The border territories to strengthen
     """
-    def __init__(self, borders : list[int]):
+    def __init__(self, borders : Set[int]):
         super().__init__(ActionType.DEFENDBORDERS)
         self.borders = borders
     
@@ -338,23 +270,6 @@ class TakeTerritories(Action):
         if not isinstance(other, TakeTerritories):
             return False
         return self.territory == other.territory
-
-
-# Fortify action not included here but should be? Or would it be calculated 
-# by simply also fortifying to desired location
-class Flee(Action):
-    """
-    Migrate majority of troops away from dangerous players for survival.
-
-    Attributes:
-        territory (int): The end goal territory ID
-    """
-    def __init__(self, territory : int):
-        super().__init__(ActionType.FLEE)
-        self.territory = territory
-    
-    def __eq__(self, other):
-        return isinstance(other, Flee)
 
 
 class NoAttack(Action):
