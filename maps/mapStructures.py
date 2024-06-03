@@ -36,14 +36,16 @@ class Map:
         graph (nx.Graph): A networkx graph representing the map, with each node representing a territory.
         bonuses (dict): A dictionary corresponding each bonus to the troops awarded if all territories are held. 
     """
-    def __init__(self, map : MapType):
-        match map:
+    def __init__(self, mapType : MapType):
+        match mapType:
             case MapType.CLASSIC:
+                self.mapType = mapType
                 self.graph = Classic
                 self.bonuses = classicBonusVals
                 
             # Currently do not have asia implemented but showing how it would be instantiated.
             case MapType.ASIA:
+                self.mapType = mapType
                 self.graph = Classic
                 self.bonuses = classicBonusVals # should be AsiaBonusVals
         self.territoryNames = [node["name"] for _, node in sorted(self.graph.nodes(data=True), key=lambda x: x[0])]

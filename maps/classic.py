@@ -32,19 +32,19 @@ classicBonusVals = {
         "bonus": 5
     },
     ClassicBonus.ASIA: {
-        "name": "EU",
+        "name": "AS",
         "bonus": 7
     },
     ClassicBonus.SOUTHAMERICA: {
-        "name": "EU",
+        "name": "SA",
         "bonus": 2
     },
     ClassicBonus.AFRICA: {
-        "name": "EU",
+        "name": "AF",
         "bonus": 3
     },
     ClassicBonus.AUSTRALIA: {
-        "name": "EU",
+        "name": "AU",
         "bonus": 2
     },
 }
