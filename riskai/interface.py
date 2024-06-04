@@ -130,13 +130,13 @@ def setupGameState() -> GameState:
     # Initiliases playerDict with player IDs and colours
     for i in range(len(playerList)):
         # Correctly initialise other player data after deciding amounts
-        playerDict[i] = {"id": i, "colour": playerList[i], "troops": 0, "territories": 0, "diceAggression": 0, "territoryAggression": 0, "bonusAggression": 0, "bonusesHeld": [], "prevIncome": 0, "cardsNum": 0, "dangerLevel": 0}
+        playerDict[i] = {"id": i, "colour": playerList[i], "troops": 0, "territories": set(), "diceAggression": 0, "territoryAggression": 0, "bonusAggression": 0, "bonusesHeld": set(), "prevIncome": 0, "cardsNum": 0, "dangerLevel": 0}
         
     # Initialises all player troop totals correctly    
     for nodeID in map.graph.nodes:
         currPlayer = map.graph.nodes[nodeID]["player"]
         playerDict[currPlayer]["troops"] += map.graph.nodes[nodeID]["troops"]
-        playerDict[currPlayer]["territories"] += 1
+        playerDict[currPlayer]["territories"].add(nodeID)
 
         
     
@@ -152,7 +152,7 @@ def setupGameState() -> GameState:
                 
     cards = []
     
-    return GameState(mapType, map, agentID, round, playerDict, playersAlive, relationsMatrix, cards)
+    return GameState(map, agentID, round, playerDict, playersAlive, relationsMatrix, cards)
 
 
             
@@ -243,7 +243,7 @@ def getDraftOpp(player : int, map : Map, playerDict : PlayerDict):
         repititionFlag = click.prompt("Is there another territory drafted to?", type=bool)
             
         
-# !! Must also be updating opponent assessment info eg. relationship matrix, dice aggression. 
+# !! Must also be updating opponent assessment info eg. relationship matrix, dice aggression. Must also update bonuses held
 # Consider ballooning into other functions which handle this, while the interface just gets the numbers. 
 # Could actually call two separate functions which do the gameState updating, one for captured 
 # territories and one without.
@@ -296,12 +296,12 @@ def getAttackOpp(player : int, map : Map, playerDict : PlayerDict) -> Tuple[bool
             map.graph.nodes[territoryIDAtt]["troops"] -= troopsMoved
             
             # Updates territory counts for attacking and attacked players
-            playerDict[player]["territories"] += 1
-            playerDict[attackedPlayer]["territories"] -= 1
+            playerDict[player]["territories"].add(territoryIDDef)
+            playerDict[attackedPlayer]["territories"].remove(territoryIDDef)
             
             # If all of an opponents territories are taken, they are eliminated, 
             # and their cards are given to the attacker.
-            if playerDict[attackedPlayer]["territories"] == 0:
+            if len(playerDict[attackedPlayer]["territories"]) == 0:
                 return (True, attackedPlayer)
                 
         else:

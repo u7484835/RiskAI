@@ -78,14 +78,12 @@ class KillPlayer(Action):
 
     Attributes:
         player (int): The player ID of the player to be killed.
-        territories (Set[int]): The territories needed to capture to achieve this
     """
-    def __init__(self, player : int, territories : Set[int]):
+    def __init__(self, player : int):
         super().__init__(ActionType.KILLPLAYER)
         self.player = player
         # Decide later on whether to keep kill path in this action, 
         # and how to store it. 
-        self.territories = territories
         
     def __eq__(self, other):
         if not isinstance(other, KillPlayer):
@@ -93,18 +91,14 @@ class KillPlayer(Action):
         return self.player == other.player
     
     def __hash__(self):
-        return hash((self.player, self.territories))
+        return hash(self.player)
     
 
 def generateKPSet(player : int, gameState: GameState) -> Set[KillPlayer]:
     """
     Generates all possible KillPlayer actions for each alive player. 
     """
-    actions = set()
-    for aliveP in gameState.playersAlive:
-        if aliveP != player:
-            actions.add(KillPlayer(aliveP, gameState.playerDict[aliveP]["territories"]))
-    return actions
+    return {KillPlayer(aliveP) for aliveP in gameState.playersAlive if aliveP != player}
 
 
 
@@ -116,22 +110,17 @@ class TakeBonus(Action):
 
     Attributes:
         player (int): The ID of the player whose bonus is getting stolen.
-        !Should be None or 0 if neutral territory.
+        !Should be None neutral territory.
         bonus (str): The bonus to be taken
-        territories (Set[int]): The territories needed to capture to achieve this
 
     """
-    def __init__(self, player : int, bonus : str, territories : Set[int]):
+    def __init__(self, bonus : str, player : int):
         super().__init__(ActionType.TAKEBONUS)
-        self.player = player
-        # Decide later on whether to keep the path in this action, 
-        # and how to store it. 
-        self.territories = territories
         # Also decide how bonuses should be represented. Currently all 
         # bonuses have a specific enumeration, could I make this 
         # have a central class?
         self.bonus = bonus
-    
+        self.player = player
 
         def __eq__(self, other):
                 if not isinstance(other, TakeBonus):
@@ -139,7 +128,26 @@ class TakeBonus(Action):
                 return self.bonus == other.bonus
             
         def __hash__(self):
-            return hash((self.player, self.territories, self.bonus))
+            return hash((self.player, self.bonus))
+
+
+def generateTBSet(player : int, gameState: GameState) -> Set[TakeBonus]:
+    """
+    Generates all possible Take Bonus actions for all bonuses. 
+    """
+    
+    actions = set()
+    for bonus in gameState.map.bonuses.keys():
+        if bonus not in gameState.playerDict[player]["bonuses"]:
+            owningPlayer = None
+            for player in gameState.playersAlive:
+                if bonus in gameState.playerDict[player]["bonuses"]:
+                    owningPlayer = player
+                    break
+            actions.add(TakeBonus(bonus, owningPlayer))
+
+    return actions
+
 
 
 class BreakBonus(Action):
@@ -151,14 +159,11 @@ class BreakBonus(Action):
     Attributes:
         player (int): The ID of the player whose bonus is getting broken.
         bonus (str): The bonus to be broken
-        territory (int): The territories needed to capture to achieve this
 
     """
-    def __init__(self, player : int, bonus : str, territory : int):
+    def __init__(self, player : int, bonus : str):
         super().__init__(ActionType.BREAKBONUS)
         self.player = player
-        # Decisions as mentioned above
-        self.territory = territory
         # Decisions as mentioned above
         self.bonus = bonus
     
@@ -169,7 +174,19 @@ class BreakBonus(Action):
         return self.bonus == other.bonus
 
     def __hash__(self):
-            return hash((self.player, self.territory, self.bonus))
+            return hash((self.player, self.bonus))
+
+
+def generateBBSet(player : int, gameState: GameState) -> Set[BreakBonus]:
+    """
+    Generates all possible Break Bonus actions for all bonuses. 
+    """
+    return {
+        BreakBonus(aliveP, bonus)
+        for aliveP in gameState.playersAlive if aliveP != player
+        for bonus in gameState.playerDict[aliveP]["bonuses"]
+    }
+
 
 
 
@@ -196,6 +213,16 @@ class ExpandBorders(Action):
     
     def __hash__(self):
             return hash(self.territories)
+        
+        
+# Generateing solo set element because expand borders locations should be chosen on calulation. 
+# Not sure whether that should be here or in actual pre-MST calculations?
+def generateEBSet() -> Set[ExpandBorders]:
+    """
+    Generates all possible Expand borders actions set.
+    """
+    return {ExpandBorders(None)}
+
 
 
 
@@ -216,6 +243,16 @@ class DefendBorders(Action):
         return isinstance(other, DefendBorders)
 
 
+# Same as EB but more concrete, there should only be 1 defend borders action.
+def generateDBSet() -> Set[DefendBorders]:
+    """
+    Generates all possible defend borders actions set.
+    """
+    return {DefendBorders(None)}
+
+
+
+
 class TakeCard(Action):
     """
     Attack a single territory that has low troops to ensure a card is taken.
@@ -231,6 +268,16 @@ class TakeCard(Action):
 
     def __eq__(self, other):
         return isinstance(other, TakeCard)
+
+
+
+def generateTCSet() -> Set[TakeCard]:
+    """
+    Generates singleton take card action set.
+    """
+    return {TakeCard(None)}
+
+
 
 
 # Could be combined with flee by implementing a more robust location 
@@ -249,6 +296,14 @@ class Migrate(Action):
     
     def __eq__(self, other):
         return isinstance(other, Migrate)
+    
+    
+def generateMSet() -> Set[Migrate]:
+    """
+    Generates singleton Migrate action set.
+    """
+    return {Migrate(None)}    
+    
 
 # !Could be implemented with the iterative deepening search that on depth 1 
 # calculates only taking territories 1 step away etc.
@@ -270,6 +325,13 @@ class TakeTerritories(Action):
         if not isinstance(other, TakeTerritories):
             return False
         return self.territory == other.territory
+    
+    
+def generateTTSet() -> Set[TakeTerritories]:
+    """
+    Generates singleton taketerritories action set.
+    """
+    return {TakeTerritories(None)}    
 
 
 class NoAttack(Action):
@@ -278,6 +340,13 @@ class NoAttack(Action):
     """
     def __init__(self):
         super().__init__(ActionType.NOATTACK)
+        
+
+def generateNASet() -> Set[NoAttack]:
+    """
+    Generates singleton no attack action set.
+    """
+    return {NoAttack(None)}    
 
 
-ActionSeq: TypeAlias = Set[Action]
+ActionSet: TypeAlias = Set[Action]

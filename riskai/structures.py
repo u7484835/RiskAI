@@ -2,7 +2,7 @@
 
 import networkx as nx
 from enum import Enum
-from typing import Optional, Tuple, TypeAlias, TypedDict, List
+from typing import Optional, Tuple, TypeAlias, TypedDict, List, Set
 from maps.mapStructures import Map, MapType
 
 
@@ -84,8 +84,6 @@ Represents a full turn which a player should take. Will be the output of the AI 
 
 
 
-
-
 Territories: TypeAlias = List[int]
 """
 Represents a set of territories on the map. Each int represented the ID of a node. 
@@ -120,7 +118,7 @@ class PlayerDict(TypedDict):
         This should be used to categorise the potential for a player over-extending, and how receptive they will be
         for you to take a bonus near them. 
         
-        bonusesHeld (int): amount of bonuses held by the player.
+        bonusesHeld Set[str]: The bonuses held by the player. String is ID for the bonus. 
         
         cardsNum (int): amount of cards held by the player.
         
@@ -129,11 +127,11 @@ class PlayerDict(TypedDict):
     id: int
     colour: str
     troops: int
-    territories: int
+    territories: Set[int]
     diceAggression: int
     territoryAggression: int
     bonusAggression: int
-    bonusesHeld: list[str]
+    bonusesHeld: Set[str]
     prevIncome: int
     cardsNum: int
     dangerLevel: int
@@ -166,8 +164,7 @@ class GameState:
         relationsMatrix (RelationShipMatrix): A matrix holding the relationships between all players
         cards (Cards): A list of cards held by the user player 
     """
-    def __init__(self, mapType: MapType, map: Map, agentID: int, round : int, playerDict : PlayerDict, playersAlive : list[int], relationsMatrix : RelationShipMatrix, cards : Cards):
-        self.mapType = mapType
+    def __init__(self, map: Map, agentID: int, round : int, playerDict : PlayerDict, playersAlive : list[int], relationsMatrix : RelationShipMatrix, cards : Cards):
         self.map = map
         self.agentID = agentID
         self.round = round

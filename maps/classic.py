@@ -2,50 +2,30 @@ import networkx as nx
 from enum import Enum
 
 
-class ClassicBonus(Enum):
-    """
-    Represents different bonuses for the classic map
-
-    Attributes:
-        NORTHAMERICA: North America bonus
-        EUROPE: Europe bonus
-        ASIA: Asia bonus
-        SOUTHAMERICA: South America bonus
-        AFRICA: Africa bonus
-        AUSTRALIA: Australia bonus
-    """
-    NORTHAMERICA = 1
-    EUROPE = 2
-    ASIA = 3
-    SOUTHAMERICA = 4
-    AFRICA = 5
-    AUSTRALIA = 6
-    
-
 classicBonusVals = {
-    ClassicBonus.NORTHAMERICA: {
-        "name": "NA",
-        "bonus": 5
+    "NA": {
+        "bonusVal": 5,
+        "territories": {1, 2, 3, 4, 5, 6, 7, 8, 9}
     },
-    ClassicBonus.EUROPE: {
-        "name": "EU",
-        "bonus": 5
+    "EU": {
+        "bonusVal": 5,
+        "territories": {10, 11, 12, 13, 14, 15, 16}
     },
-    ClassicBonus.ASIA: {
-        "name": "AS",
-        "bonus": 7
+    "AS": {
+        "bonusVal": 7,
+        "territories": {17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28}
     },
-    ClassicBonus.SOUTHAMERICA: {
-        "name": "SA",
-        "bonus": 2
+    "SA": {
+        "bonusVal": 2,
+        "territories": {29, 30, 31, 32}
     },
-    ClassicBonus.AFRICA: {
-        "name": "AF",
-        "bonus": 3
+    "AF": {
+        "bonusVal": 3,
+        "territories": {33, 34, 35, 36, 37, 38}
     },
-    ClassicBonus.AUSTRALIA: {
-        "name": "AU",
-        "bonus": 2
+    "AU": {
+        "bonusVal": 2,
+        "territories": {39, 40, 41, 42}
     },
 }
 

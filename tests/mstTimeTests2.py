@@ -20,6 +20,8 @@ def main():
     
     testGS = setupGameState()
     
+    graphList = []
+    
     print("Testing MST time ")
     start_mst = time.time()
     for i in range(1000):    
@@ -27,9 +29,10 @@ def main():
         for node in currGraph:
             currGraph.nodes[node]['troops'] = random.randint(1, 100)
         mst = nx.minimum_spanning_tree(currGraph, weight='troops', algorithm='kruskal')
+        graphList.append((currGraph, mst))
     print("Done. That took", time.time() - start_mst, "seconds.")
-
-    print(mst.edges())
+    
+    print(graphList[-1][0].nodes())
     
     
     
