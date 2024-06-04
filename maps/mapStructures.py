@@ -41,13 +41,13 @@ class Map:
             case MapType.CLASSIC:
                 self.mapType = mapType
                 self.graph = Classic
-                self.bonuses = classicBonusVals
+                self.bonuses = classicBonusDict
                 
             # Currently do not have asia implemented but showing how it would be instantiated.
             case MapType.ASIA:
                 self.mapType = mapType
                 self.graph = Classic
-                self.bonuses = classicBonusVals # should be AsiaBonusVals
+                self.bonuses = classicBonusDict # should be AsiaBonusVals
         self.territoryNames = [node["name"] for _, node in sorted(self.graph.nodes(data=True), key=lambda x: x[0])]
 
         self.territoryNames = [node["name"] for _, node in self.graph.nodes(data=True)]

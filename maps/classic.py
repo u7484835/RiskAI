@@ -2,7 +2,7 @@ import networkx as nx
 from enum import Enum
 
 
-classicBonusVals = {
+classicBonusDict = {
     "NA": {
         "bonusVal": 5,
         "territories": {1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -44,7 +44,7 @@ Classic.add_node(4, name = "Alberta", troops = 0, player = 0, bonus = "NA")
 Classic.add_node(5, name = "Ontario", troops = 0, player = 0, bonus = "NA")
 Classic.add_node(6, name = "Quebec", troops = 0, player = 0, bonus = "NA")
 Classic.add_node(7, name = "Western United States", troops = 0, player = 0, bonus = "NA")
-Classic.add_node(8, name = "Eastern UNited States", troops = 0, player = 0, bonus = "NA")
+Classic.add_node(8, name = "Eastern United States", troops = 0, player = 0, bonus = "NA")
 Classic.add_node(9, name = "Central America", troops = 0, player = 0, bonus = "NA")
 
 Classic.add_edges_from([(1, 2), (1, 4), 

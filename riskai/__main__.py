@@ -2,6 +2,8 @@ import click
 from .interface import *
 from .structures import GameState
 from .riskAI import riskAgent
+from .randAI import randAI
+
 
 def playRound():
     pass
@@ -12,13 +14,12 @@ def playOpponentsTurn():
     # remember when inidividual player attacks to check each time for termination
     pass
 
-def getAgentTurn():
-    action = riskAgent()
-    executeAgentTurn(action)
-    pass
+def getAgentTurn(gameState : GameState) -> bool:
+    move = randAI(gameState)
+    executeAgentTurn(move, gameState)
 
 def funcPrompt() -> int:
-    click.echo("Please select the mode with which you wish to use this agent:")
+    click.echo("Please select the mode with which you wish to use this agent")
     click.echo("1. Play a game with the agent against other players")
     click.echo("2. Play with a variable amount of agents and other players")
     click.echo("3. Evaluate a static position using BFS")
@@ -26,7 +27,7 @@ def funcPrompt() -> int:
     click.echo("5. Use the debugging features for a variable player game")
     click.echo("6. <Misc to be added>")
     click.echo("7. Exit")
-    return click.prompt("... \n", type=click.IntRange(min=1, max=7))
+    return click.prompt("Choice", type=click.IntRange(min=1, max=7))
 
 
 def singleAgentGame(gameState : GameState):

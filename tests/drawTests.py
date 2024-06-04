@@ -16,7 +16,7 @@ bonus_color_map = {
     }
 
 
-background_image_path = os.path.join('tests', 'BlankSlate3.png')
+background_image_path = os.path.join('tests', 'BlankSlate12.png')
 background_image = mpimg.imread(background_image_path)
 
 
@@ -29,21 +29,15 @@ background_image = mpimg.imread(background_image_path)
 def drawTest():
     ax = plt.subplot(111)
     node_colors = [bonus_color_map[Classic.nodes[node]["bonus"]] for node in Classic.nodes()]
-    posConfig = nx.kamada_kawai_layout(Classic)
     ax.imshow(background_image, extent=[0, background_image.shape[1], 0, background_image.shape[0]])
 
-    nx.draw(Classic, pos = new3ClassicPosCoords, with_labels=True, font_weight="bold", node_color=node_colors)
+    nx.draw(Classic, pos = newClassicPosCoords, with_labels=True, font_weight="bold", node_color=node_colors)
     
     # Path to save the output image
-    output_image_path = os.path.join('tests', 'ClassicGraphBackGround.png')
+    output_image_path = os.path.join('tests', 'drawTests9.png')
 
     # Save the figure with the custom background
-    plt.savefig(output_image_path, bbox_inches='tight')
-    
-    new3Coords = new2ClassicPosCoords
-    for key in new3Coords.keys():
-        new3Coords[key] = [new3Coords[key][0] - 5, new3Coords[key][1] + 258]
-    print(new3Coords)
+    plt.savefig(output_image_path, bbox_inches='tight', transparent=True)
     
     
 if __name__ == "__main__":

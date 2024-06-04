@@ -4,6 +4,7 @@ import click
 from .structures import *
 from maps.mapStructures import MapType, Map
 from typing import Optional
+from .drawInterface import drawBoard
 
 
 
@@ -75,7 +76,7 @@ def getAgentList(playersList : list[str]) -> list[int]:
     """
     agentList = []
     
-    repititionFlag = click.prompt("Would you like any agents in the game?", type=bool)
+    repititionFlag = click.prompt("Would you like any agents in the game", type=bool)
 
     
     # Gets agents until maximum number of agents is reached
@@ -288,7 +289,10 @@ def getAttackOpp(player : int, map : Map, playerDict : PlayerDict) -> Tuple[bool
         if troopsLostDef >= map.graph.nodes[territoryIDDef]["troops"]:
             captureFlag = True
             # If territory was taken, gets number of troops moved to attacked territory
-            troopsMoved = click.prompt(f"Enter the number of troops moved to the attacked territory", type=click.IntRange(min=3, max=map.graph.nodes[territoryIDAtt]["troops"]-1))
+            if map.graph.nodes[territoryIDAtt]["troops"] <= 4:
+                troopsMoved = map.graph.nodes[territoryIDAtt]["troops"] - 1
+            else:
+                troopsMoved = click.prompt(f"Enter the number of troops moved to the attacked territory", type=click.IntRange(min=3, max=map.graph.nodes[territoryIDAtt]["troops"]-1))
             
             # Reassigns territory, adds opponents new troops to territory, updates old territory troops
             map.graph.nodes[territoryIDDef]["player"] = player
@@ -374,42 +378,90 @@ def getTurn(player : int, gameState: GameState) -> bool:
 
 # ---------------------------- Output - Game interface ----------------------------
 
+def tradeText(card : Card, gameState : GameState) -> str:
+    """
+    Converts a trade action into a string for output. 
+    """
+    if card.type == CardType.WILD:
+        return "the next wildcard"
+    else:
+        return f"{card.type.name.capitalize()} at {gameState.map.territoryNames[card.territory]}"
 
-def instructDraft(draft : Draft) :
+def instructTrade(trades : list[Trade], gameState : GameState) :
+    """
+    Tells user whether to trade cards, what cards to use.
+    """
+    # empty list indicates not to trade
+    if len(trades) == 0:
+        click.echo("You should not trade")
+
+    else:
+        click.echo("You should trade the following cards:")
+        for trade in trades:
+            click.echo(f"Trade in the {tradeText(trade[0], gameState)}, the {tradeText(trade[0], gameState)}, and the {tradeText(trade[0], gameState)}.")
+        
+    
+def instructDraft(draft : Draft, gameState : GameState) :
     """
     Tells user where to draft troops, whether to trade cards, what cards to use.
     """
-    pass
+    instructTrade(draft[0], gameState)
+    
+    click.echo("Draft to the following territories:")
+    for singleDraft in draft[1]:
+        click.echo(f"Draft {singleDraft[1]} troops to {gameState.map.territoryNames[singleDraft[0]]}")
+        
 
-def instructAttack(attacks : Attack):
+def instructAttack(attacks : Attack, gameState : GameState) -> bool:
     """
-    Tells user which territories to attack with, where to attack, how many to attack with, and how many to move.
+    Tells user which territories to attack with, where to attack, how many to attack with, and how many to move. 
+    Indicates gameover with boolean.
     """
-    pass
+    
+    if len(attacks) == 0:
+        click.echo("Do not attack.")
+    
+    
+    # !! Currently no active tracking if attack fails, complete alongside heuristic
+    # Attacks do not give perfect dice calculations
+    click.echo("Draft to the following territories:")
+    for attack in attacks:
+        click.echo(f"Attack from {gameState.map.territoryNames[attack[0]]} to {gameState.map.territoryNames[attack[1]]} with {attack[2]} troops, moving {attack[3]} troops.")
+        
+        
+    
 
-def instructFortify(fortify : Fortify):
+def instructFortify(fortify : Fortify, gameState : GameState):
     """
     Tells user whether to fortify, where fortify from, where to fortify to, and how many to fortify with.
     """
-    pass
+    if fortify is None:
+        click.echo("Do not fortify.")
+        
+    else:  
+        click.echo(f"Fortify from {gameState.map.territoryNames[fortify[0]]} to {gameState.map.territoryNames[fortify[1]]} with {fortify[2]} troops.")
 
 
 
-def executeAgentTurn(draft : Draft, attacks : Attack, fortify : Fortify):
+def executeAgentTurn(move: Move, gameState: GameState):
     """
     Tells user full list of actions to to implement as instructed by the AI agent. 
-    
-    
-    Requires:
-        - `instructDraft()`
-        - `instructAttack()`
-        - `instructFortify()`
     """
-    pass
+    drawBoard(gameState)
+    instructDraft(move[0], gameState)
+    drawBoard(gameState)
+    instructAttack(move[1], gameState)
+    drawBoard(gameState)
+    instructFortify(move[2], gameState)
+    
+    
 
-def displayGameover(winnerID : int):
+def displayGameover(winnerID : int, gameState : GameState):
     """
     Outputs information about the winner of the game and any final information which might be helpful
     for testing.
     """
-    pass
+    click.echo(f"The game is over. The winner is {gameState.playerDict[winnerID]['colour']}!")
+    click.echo("The final state of the game is as follows:")
+    print(gameState)
+    

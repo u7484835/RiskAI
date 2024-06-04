@@ -6,41 +6,6 @@ import signal
 import click
 
 
-def gameStateHeuristic(gameState : GameState) -> int:
-    """
-    Calculates how favourable the current GameState is. Considerations should be:
-    
-    - Number of players: having less players is hugely preferrable
-    
-    - Player relationships: Having friendly relationships is very beneficial, 
-    conversely vengence or hatred is very bad in human games. According to the 
-    player matrix, high aggressions between two non-user players is very 
-    favourable. 
-    
-    - Amount of troops: should be measured in relation to everyone else
-    
-    - Troop density: Concentrated stacks are very preferrable
-    
-    - Bonuses: Having strong bonuses is vital
-    
-    - Defence points: fewest points of defence 
-    
-    - Bonus defence: Borders strong enough to disuade attacks is necessary
-      (it is unlikely troop counts allow for entirely negative attacks)
-      
-    - Player proximity: It is best to have distance for expansion
-    
-    - Untaken bonus proximity: Maneuvering for bonuses is key
-    
-    - Card count + values
-    
-    - Territories: Gives passive troops and is important    
-    
-    - Danger by troops/bonuses/cards/ aggression from other players is vital
-    """
-    pass
-
-
 
 def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
     """
@@ -48,13 +13,18 @@ def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Att
     all of them in the most efficient possible way.
     """
     # Filter graph for only externally owned territories
+    internalTerr = findInternalTerritories(gameState.agentID, gameState)
+    filteredGraph = gameState.graph.copy()
+    filteredGraph.remove_nodes_from(internalTerr)
     
     # node weights for MST
+    
+    
     
     # MST
     
     # See how long one stack can traverse, make it do so 
-    pass
+    
     
     
 def findInternalTerritories(player : int, gameState : GameState) -> Territories:
@@ -249,7 +219,6 @@ def ids (gameState : GameState, timeConstraint : int) -> Move:
         # Handle the timeout here
         click.echo(f"Search timed out after {timeConstraint} seconds")
         return bestMove 
-
 
 
 

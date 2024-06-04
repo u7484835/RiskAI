@@ -36,15 +36,15 @@ class Card:
         self.territory = territory
 
 
-Cards: TypeAlias = list[Card]
+Cards: TypeAlias = Set[Card]
 """
-List of cards held by user player
+Set of cards held by agent player
 """
 
 # List of actions carried out by the player or agent, with 
 # specific information on the intention
 
-Trade: TypeAlias = Optional[Tuple[CardType, CardType, CardType]]
+Trade: TypeAlias = Tuple[Card, Card, Card]
 """
 Represents whether a trade action is intending to be played. It will be 
 None if no trade is occuring, otherwise it will be a tuple of three cards 
@@ -52,7 +52,7 @@ to be played in the order given.
 """
 
 
-Draft: TypeAlias = Tuple[Trade, list[(int, int)]]
+Draft: TypeAlias = Tuple[list[Trade], list[(int, int)]]
 """
 Represents the draft phase of the player to be taken. Holds The trade (if 
 it will occur) and the associated cards, and a list of locations formatted 
