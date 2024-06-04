@@ -41,7 +41,7 @@ def singleAgentGame(gameState : GameState):
                 winFlag = executeAgentTurn()
                 # Exit loop if player wins
                 if winFlag:
-                    displayGameover(i)
+                    displayGameover(i, gameState)
                     return
                 
             # Opponent players give system update of what's happened
@@ -49,7 +49,7 @@ def singleAgentGame(gameState : GameState):
                 winFlag = getTurn(i, gameState)
                 # Exit loop if opponent wins
                 if winFlag:
-                    displayGameover(i)
+                    displayGameover(i, gameState)
                     return
                 
         gameState.round += 1
@@ -71,7 +71,7 @@ def variableAgentGame(gameState : GameState):
                 winFlag = executeAgentTurn()
                 # Exit loop if player wins
                 if winFlag:
-                    displayGameover(i)
+                    displayGameover(i, gameState)
                     return
                 
             # Opponent players give system update of what's happened
@@ -79,8 +79,9 @@ def variableAgentGame(gameState : GameState):
                 winFlag = getTurn(i, gameState)
                 # Exit loop if opponent wins
                 if winFlag:
-                    displayGameover(i)
+                    displayGameover(i, gameState)
                     return
+        gameState.round += 1
         
     
 

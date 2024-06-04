@@ -22,6 +22,10 @@ def drawBoard(gameState : GameState):
     playerNodes = [gameState.map.graph.nodes[node]["player"] for node in gameState.map.graph.nodes()]
     nodeColours = [gameState.playerDict[player]["colour"] for player in playerNodes]
     
+    # Changes black to grey for visibility
+    nodeColours = ["grey" if c == "black" else c for c in nodeColours]
+    
+    
     
     troopLabels = {node: data['troops'] for node, data in Classic.nodes(data=True)}
     
@@ -35,6 +39,5 @@ def drawBoard(gameState : GameState):
     outputImPath = os.path.join('riskAI', 'GameOutput.png')
     plt.savefig(outputImPath, bbox_inches='tight', transparent=True)
     
-      
-    # opens image for user
-    os.system(f'start {outputImPath}')
+    # Close the current figure to prevent blocking
+    plt.close()

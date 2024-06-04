@@ -39,6 +39,9 @@ def drawTest():
     # Save the figure with the custom background
     plt.savefig(output_image_path, bbox_inches='tight', transparent=True)
     
+    # opens image for user
+    os.system(f'explorer {output_image_path}')
+    
     
 if __name__ == "__main__":
     drawTest()

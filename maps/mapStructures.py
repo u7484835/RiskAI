@@ -50,4 +50,4 @@ class Map:
                 self.bonuses = classicBonusDict # should be AsiaBonusVals
         self.territoryNames = [node["name"] for _, node in sorted(self.graph.nodes(data=True), key=lambda x: x[0])]
 
-        self.territoryNames = [node["name"] for _, node in self.graph.nodes(data=True)]
+        # self.territoryNames = [node["name"] for _, node in self.graph.nodes(data=True)]
