@@ -21,6 +21,16 @@ class CardType(Enum):
     CAVALRY = 6
     ARTILLERY = 8
     WILD = 10
+    
+    @classmethod
+    def from_str(cls, name: str) -> "CardType":
+        """
+        Converts a string to a CardType enum.
+        """
+        try:
+            return cls[name.upper()]
+        except KeyError:
+            raise ValueError(f"Invalid card name: {name}")
 
 class Card:
     """

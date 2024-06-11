@@ -1,0 +1,2 @@
+poetry run python run_riskAI.py 
+poetry run python tests/drawTests.py

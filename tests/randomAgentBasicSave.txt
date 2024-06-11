@@ -89,3 +89,12 @@ blue
 1
 blue
 1
+2
+y
+blue
+y
+green
+y
+white
+y
+purple

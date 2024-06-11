@@ -1,0 +1,9 @@
+- The focus of the body of my effort has been building something new rather than evaluation and testing 
+- More desire to explain design and encoding than leave it to be footnotes before data 
+- All examples were for 12u reports & PhD thesis, what's applicable?
+
+- What does a proper report format look like for me?
+- Games take 1 hour to play out, all manually. I can barely get 4 data points most likely, more interested to focus on game in mico-fashion 
+
+- Submission will probably be a Git commit with an email to the link, I'll have to add the comarker 
+- Page estimate? Marking guidelines?

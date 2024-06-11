@@ -5,23 +5,20 @@ from .riskAI import riskAgent
 from .randAI import randAI
 
 
-def playRound():
-    pass
-
-
-def playOpponentsTurn():
-    
-    # remember when inidividual player attacks to check each time for termination
-    pass
-
-def getAgentTurn(gameState : GameState) -> bool:
-    move = randAI(gameState)
-    executeAgentTurn(move, gameState)
+def getAgentTurn(gameState : GameState, agentType : str) -> Move:
+    match agentType:
+        case "actionAI":
+            return riskAgent(gameState)
+        case "randAI":
+            return randAI(gameState)
+        case _:
+            raise ValueError("Invalid agent type")
+        
 
 def funcPrompt() -> int:
     click.echo("Please select the mode with which you wish to use this agent")
-    click.echo("1. Play a game with the agent against other players")
-    click.echo("2. Play with a variable amount of agents and other players")
+    click.echo("1. Play a game with the strongest agent against other players")
+    click.echo("2. Play a game with the random agent against other players")
     click.echo("3. Evaluate a static position using BFS")
     click.echo("4. Evaluate a static position using the heuristic")
     click.echo("5. Use the debugging features for a variable player game")
@@ -29,32 +26,7 @@ def funcPrompt() -> int:
     click.echo("7. Exit")
     return click.prompt("Choice", type=click.IntRange(min=1, max=7))
 
-
-def singleAgentGame(gameState : GameState):
-    # Game loops infinitely until a player achieves victory
-    while True:
-        # Loops over all alive players
-        for i in gameState.playersAlive:
-            # Agent players get AI moves
-            if i == gameState.agentID:
-                getAgentTurn()
-                winFlag = executeAgentTurn()
-                # Exit loop if player wins
-                if winFlag:
-                    displayGameover(i, gameState)
-                    return
-                
-            # Opponent players give system update of what's happened
-            else:
-                winFlag = getTurn(i, gameState)
-                # Exit loop if opponent wins
-                if winFlag:
-                    displayGameover(i, gameState)
-                    return
-                
-        gameState.round += 1
-
-def variableAgentGame(gameState : GameState):
+def variableAgentGame(gameState : GameState, agentType : str):
     # recreating player list
     playerList = [player['colour'] for player in gameState.playerDict.values()]
     agentList = getAgentList(playerList)
@@ -63,12 +35,13 @@ def variableAgentGame(gameState : GameState):
     while True:
         # Loops over all alive players
         for i in gameState.playersAlive:
-            click.echo(f"It is {gameState.playerDict[i]['colour']}'s turn")
+            click.prompt(f"Press enter to to start {gameState.playerDict[i]['colour']}'s turn", default="", show_default=False, prompt_suffix='')
+
             # Agent players get AI moves
             if i in agentList:
                 gameState.agentID = i
-                getAgentTurn()
-                winFlag = executeAgentTurn()
+                move = getAgentTurn(gameState, agentType)
+                winFlag = executeAgentTurn(move, gameState)
                 # Exit loop if player wins
                 if winFlag:
                     displayGameover(i, gameState)
@@ -104,9 +77,9 @@ def main():
     # Chooses and executes desired game functionality
     match funcPrompt():
         case 1:
-            singleAgentGame(gameState)
+            variableAgentGame(gameState, "actionAI")
         case 2:
-            variableAgentGame(gameState)
+            variableAgentGame(gameState, "randAI")
         case 3:
             bfsEval(gameState)
         case 4:
