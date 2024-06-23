@@ -61,7 +61,7 @@ None if no trade is occuring, otherwise it will be a tuple of three cards
 to be played in the order given. 
 """
 
-
+# Should change from list of territory id to amount of troops to dict
 Draft: TypeAlias = Tuple[list[Trade], list[(int, int)]]
 """
 Represents the draft phase of the player to be taken. Holds The trade (if 

@@ -204,6 +204,18 @@ def getTerritory(map : Map, player : Optional[int], aboveOne : bool) -> int:
     return territoryID
 
 
+def getTerritorySet(map : Map) -> set[int]:
+    click.echo("Getting set of territories:")
+    territories = set()
+    loopFlag = True
+    while loopFlag:
+        territory = getTerritory(map, None, False)
+        territories.add(territory)
+        loopFlag = click.prompt("Is there another territory?", type=bool, prompt_suffix=' ')
+        
+    return territories
+
+
 
 
 def getTradeOpp(player : int, gameState : GameState):

@@ -2,7 +2,10 @@ import click
 from .interface import *
 from .structures import GameState
 from .riskAI import riskAgent
+from .simpleAI import attackGraphSimple
 from .randAI import randAI
+from .drawInterface import drawArborescence
+
 
 
 def getAgentTurn(gameState : GameState, agentType : str) -> Move:
@@ -19,7 +22,7 @@ def funcPrompt() -> int:
     click.echo("Please select the mode with which you wish to use this agent")
     click.echo("1. Play a game with the strongest agent against other players")
     click.echo("2. Play a game with the random agent against other players")
-    click.echo("3. Evaluate a static position using BFS")
+    click.echo("3. Test the minimum arborescence algorithm on a static position")
     click.echo("4. Evaluate a static position using the heuristic")
     click.echo("5. Use the debugging features for a variable player game")
     click.echo("6. <Misc to be added>")
@@ -58,8 +61,12 @@ def variableAgentGame(gameState : GameState, agentType : str):
         
     
 
-def bfsEval():
-    pass
+def msaDebug(gameState : GameState):
+    drawBoard(gameState)
+    territories = getTerritorySet(gameState.map)
+    attackGraph, stack, sumTroops = attackGraphSimple(gameState, territories)
+    drawArborescence(gameState, attackGraph)
+
 
 def heuristicEval():
     pass
@@ -81,7 +88,7 @@ def main():
         case 2:
             variableAgentGame(gameState, "randAI")
         case 3:
-            bfsEval(gameState)
+            msaDebug(gameState)
         case 4:
             heuristicEval(gameState)
         case 5:

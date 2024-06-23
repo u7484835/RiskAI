@@ -238,7 +238,7 @@ def weightNode(node : int, gameState : GameState, territories : Territories) -> 
     return nodeWeight
 
 
-def weightEdgesForMST(gameState : GameState, graph : nx.Graph, territories : Territories) -> Dict[int, int]:
+def weightNodes(gameState : GameState, graph : nx.Graph, territories : Territories) -> Dict[int, int]:
     # Stack Nodes are infinity
     
     # Neutral Territories are very high 
@@ -247,60 +247,28 @@ def weightEdgesForMST(gameState : GameState, graph : nx.Graph, territories : Ter
     
     # "Corner" territories to attack are a bit higher
         # Dictionary to store the weights of edges
-    edge_weights = {}
+    pass
 
-    # Define weights for different types of territories
-    INFINITY_WEIGHT = float('inf')
-    VERY_HIGH_WEIGHT = 1000
-    VERY_LOW_WEIGHT = 1
-    CORNER_WEIGHT = 10
-
-
-    for u, v in graph.edges():
-        
-        # Owned territories should strictly be avoided at all cost, ensures that 
-        # territories path into unowned territories.        
-        if graph.nodes[u]["player"] == gameState.agentID and graph.nodes[v]["player"] == gameState.agentID:
-            weight = float('inf')
-            
-        # Edges into unowned territories should be more preferrable the larger the stack
-        elif graph.nodes[u]["player"] == gameState.agentID or graph.nodes[v]["player"] == gameState.agentID:
-            weight = 10000 * max(graph.nodes[u]["troops"], graph.nodes[v]["troops"])
-            
-        elif graph.nodes[u]["player"] != gameState.agentID and  u not in territories:
-            weight = 1000 * 
-        
-        
-
-        # Set the weight for the edge
-        edge_weights[(u, v)] = weight
-
-    # Update the graph with the new weights
-    nx.set_edge_attributes(graph, edge_weights, 'weight')
-
-    return edge_weights
-
-
+    # See how long one stack can traverse, make it do so 
+    
+    
 def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
     """
     Given a list of target territories, calculates the required moves to attack 
     all of them in the most efficient possible way.
     """
     # Filter graph for only externally owned territories
-    internalTerr = findInternalTerritories(gameState.agentID, gameState)
-    filteredGraph = gameState.graph.copy()
-    filteredGraph.remove_nodes_from(internalTerr)
+    stacks = stackSelect(gameState, gameState.agentID)
+    bestPathCost = float('inf')
     
-    # node weights for MST
-    weightEdgesForMST(gameState, filteredGraph, territories)
-    
-    
-    
-    # MST
-    mst = nx.minimum_spanning_tree(filteredGraph)
-
-    
-    # See how long one stack can traverse, make it do so 
+    for stack in stacks:
+        # Create graph with only enemy territories other than the stack
+        filterGraph = gameState.graph.copy()
+        nonStackOwned = gameState.playerDict[gameState.agentID]["territories"] - stack
+        filterGraph.remove_nodes_from(nonStackOwned)
+        components = nx.connected_components(filterGraph)
+                        
+    pass
     
     
     
@@ -327,6 +295,8 @@ def fortify(gameState : GameState, territories : Territories) -> Fortify:
     pass
     
 
+def calculateActionNode(actionSet : ActionSet) -> Tuple[Move, int]:
+    pass 
 
 
 

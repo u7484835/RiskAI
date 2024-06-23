@@ -3,6 +3,7 @@ from .actions import *
 from typing import List, Dict
 import itertools
 from .riskAI import makeTrade, draftTroopsAmount
+from .dice import perfectDice
 
 
 def ownedTerrConnected(player : int, gameState : GameState, terr1 : int, terr2 : int) -> bool:
@@ -63,7 +64,7 @@ def weightNode(node : int, gameState : GameState, territories : Territories) -> 
     if gameState.map.graph.nodes[node]["player"] == gameState.agentID:
         # Balances troop sum to be relative to player's total troop count to ensure comparison is 
         # normalised for games with many and few troops. 
-        return (gameState.map.graph.nodes[node]["troops"] / gameState.playerDict[gameState.map.graph.nodes[node]["player"]]["troops"] )* 100
+        return (gameState.map.graph.nodes[node]["troops"] // gameState.playerDict[gameState.map.graph.nodes[node]["player"]]["troops"] )* 100
         
         
     # If the territory is not owned by the player, the weight is the number of troops in the territory 
@@ -71,7 +72,7 @@ def weightNode(node : int, gameState : GameState, territories : Territories) -> 
     # adjacent enemy territories. 
     else:
         # Normalises troop weight
-        nodeWeight = gameState.map.graph.nodes[node]["troops"] / gameState.playerDict[gameState.map.graph.nodes[node]["player"]]["troops"] 
+        nodeWeight = gameState.map.graph.nodes[node]["troops"] // gameState.playerDict[gameState.map.graph.nodes[node]["player"]]["troops"] 
         
         for neighbour in gameState.map.graph.neighbors(node):
             if neighbour in territories:
@@ -90,37 +91,7 @@ def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Att
     Given a list of target territories, calculates the required moves to attack 
     all of them in the most efficient possible way.
     """
-    # Filter graph for only externally owned territories
-    stacks = stackSelect(gameState, gameState.agentID)
-    bestPathCost = float('inf')
-    
-    for stack in stacks:
-        # Create graph with only enemy territories other than the stack
-        filterGraph = gameState.graph.copy()
-        nonStackOwned = gameState.playerDict[gameState.agentID]["territories"] - stack
-        filterGraph.remove_nodes_from(nonStackOwned)
-        components = nx.connected_components(filterGraph)
-                        
-        weightDict = {node : weightNode(node, gameState, territories) for node in territories}
-        
-        # node weights for MST
-        weightNodes(gameState, filteredGraph, territories)
-        
-        
-        
-        
-        
-    
-    
-    
-    
-    
-    
-    # MST
-    mst = nx.minimum_spanning_tree(filteredGraph)
-
-    
-    # See how long one stack can traverse, make it do so 
+    pass
     
     
     
@@ -226,7 +197,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
     """
     # Firstly removes all owned territories from a copied graph so that we 
     # can search only on the attackable space. 
-    filterGraph = gameState.graph.copy()
+    filterGraph = gameState.map.graph.copy()
     filterGraph.remove_nodes_from(gameState.playerDict[gameState.agentID]["territories"])
     
     # Check if all territories to capture are even connected
@@ -251,7 +222,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
     # Filter to stacks which have a connection to the component
     filteredStacks = set()
     for stack in stacks:
-        if any(neigh in foundComponent for neigh in gameState.graph.neighbors(stack)):
+        if any(neigh in foundComponent for neigh in gameState.map.graph.neighbors(stack)):
             filteredStacks.add(stack)
             
     """ Suggested code to streamline prcess 
@@ -259,13 +230,13 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
             
             
     # Getting base graph to perform MSA over
-    componentGraph = gameState.graph.subgraph(foundComponent)
+    componentGraph = gameState.map.graph.subgraph(foundComponent)
     
     # Removes all edges from the graph. Could be an inefficient process
     # componentGraph.remove_edges_from(list(componentGraph.edges))
     
     
-    weightDict = {node : weightNode(node, gameState, territories) for node in territories}
+    weightDict = {node : weightNode(node, gameState, territories) for node in componentGraph.nodes()}
  
     directedGraph = nx.DiGraph(componentGraph)
     
@@ -285,7 +256,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
         directedGraph.add_node(stack)
         
         # Add paths exiting the stack to the component to attack
-        for neighbour in gameState.graph.neighbors(stack):
+        for neighbour in gameState.map.graph.neighbors(stack):
             if neighbour in foundComponent:
                 # They should only be in the direction away from the stack
                 directedGraph.add_edge(stack, neighbour, weight=weightDict[neighbour])
@@ -298,6 +269,9 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
         # Get all neutral nodes which are not desired to attack and are not the 
         # stack attacking from 
         neutralNodes = arborescence.nodes() - territories - {stack}
+        print(neutralNodes)
+        print(arborescence.nodes())
+        print(arborescence)
         
         # Loop until no more neutral nodes can be removed
         trimmedNode = True 
@@ -306,7 +280,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
             
             for node in neutralNodes:
                 # If neutral node is a lead then remove it
-                if arborescence.out_degree(node) == 0:
+                if arborescence.out_degree([node]) == 0:
                     arborescence.remove_node(node)
                     trimmedNode = True
         
@@ -314,7 +288,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
         tempTroops = 0 
         
         for node in arborescence.nodes():
-            tempTroops += gameState.graph.nodes[node]["troops"]
+            tempTroops += gameState.map.graph.nodes[node]["troops"]
             
         # Updates minimum arborescence if it requires less troop expenditure
         if tempTroops < minTroops:
@@ -361,37 +335,53 @@ def simpleDraft(gameState : GameState, stack : int) -> Draft:
     return (tradeList, [(stack, draftAmount)])
 
 
+def splitTroops(troopsNum : int, numSplits : int) -> List[int]:
+    """
+    Splits the troops for each branch as evenly as possible, 
+    spreading the remainder to the first few territories.  
+    """
+    splitTroops = [troopsNum // numSplits] * numSplits
+    
+    # Distribute remaining troops as evenly as possible
+    for i in range(troopsNum % numSplits):
+        splitTroops[i] += 1
+        
+    return splitTroops
 
 
 
-
-def graphToAttackRec(gameState : GameState, attackGraph : nx.DiGraph, currNode : int, currStack: int, currList : list[Attack]) -> list[Attack]:
+def graphToAttackRec(gameState : GameState, attackGraph : nx.DiGraph, currNode : int, currTroops: int) -> Attack:
     """
     Functional programming style recursive function to create lists of attacks down a branch
     """
-    if attackGraph.out_degree(node) == 0:
-        return []
+    if attackGraph.out_degree(currNode) == 0:
+        return []    
+          
+    # Gets a list of how to distribute troops
+    splitList = splitTroops(currTroops, len(attackGraph.neighbors(currNode)))
+    splitIndex = 0
     
+    addingList = []    
     for neighbour in attackGraph.nodes[currNode].neighbors:
-        thisAttack = (currNode, neighbour, )
-    
+        # Always asks for perfect attack currently, no matter how many troops there are
+        # Also moves troops assuming no losses. !Should be revamped in the future.
+        thisAttack = (currNode, neighbour, perfectDice(gameState.map.graph.nodes[neighbour]["troops"]), currTroops)
+        addingList += [thisAttack]
+        
+        # Recurses until all branches are added
+        addingList += graphToAttackRec(gameState, attackGraph, neighbour, splitList[splitIndex])
+        splitIndex += 1     
+        
+    return addingList   
 
-def graphToAttack(gameState : GameState, attackGraph : nx.DiGraph, stack : int) -> Attack:
+# For multi stack expansion make stack a list of ints and troops a list of troop nums associated 
+# with that amount 
+def graphToAttack(gameState : GameState, attackGraph : nx.DiGraph, stack : int, troops : int) -> Attack:
     """
     Generates attack based on attack graph, moving all troops if possible, and 
     splitting troops on branches.
     """
-    
-    # When attacking, the stack 
-    attackGraph.ed
-    
-    currNode = stack
-    
-    
-
-    randAttack = random.choice(attackable)
-    attack = (randAttack[0], randAttack[1], gameState.map.graph.nodes[node]["troops"], gameState.map.graph.nodes[node]["troops"])
-    return [attack]        
+    return graphToAttackRec(gameState, attackGraph, stack, troops)
 
 
         
@@ -403,14 +393,11 @@ def attackSimple(gameState : GameState, territories : Territories) -> Optional[T
     
     draft = simpleDraft(gameState, stack)
     
+    # Creates dict out of list of draft, troop tuples to quickly get stack deploy amount
+    draftDict = {id: value for id, value in draft[1]}
     
+    # Gets troops number by amount of current troops plus draft amount
+    attack = graphToAttack(gameState, attackGraph, stack, gameState.map.graph.nodes[stack]["troops"] + draftDict[stack])
     
-    
-    
-    
-    
-       
-    
-    
-    pass
+    return (draft, attack)
     
