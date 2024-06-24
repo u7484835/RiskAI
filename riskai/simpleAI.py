@@ -2,35 +2,11 @@ from .structures import *
 from .actions import *
 from typing import List, Dict
 import itertools
-from .riskAI import makeTrade, draftTroopsAmount
+from .riskAI import makeTrade, draftTroopsAmount, stackSelect
 from .dice import perfectDice
 from .drawInterface import drawArborescence, drawPath
 
 
-
-def stackSelect(gameState : GameState, player: int) -> Territories:
-    """
-    Generally, optimal play is to have a very high troop
-    density, with troops placement tending to be 1 in all internal and non-important territories, and 
-    as high as possible for critical and mobile locations. Selects the territories which are considered
-    a "stack" with a significant amount of troops. This is both relative to the player and the game. Stacks
-    should have a significant % of the players troops, and it should also be considered in comparison to 
-    other players totals. Beyond a certain point, say 10 troops these territories have significant mobility and attacking 
-    power and should also be considered stacks. 
-    """
-    # This defines a stack to have at least 10% of the player's total troops. Should and can be changed during testing. 
-    totalTroopPercent = 10
-    percCutoff = gameState.playerDict[player]["troops"] // totalTroopPercent
-    
-    # Any territories with more than 10 troops are considered stacks
-    largeStackSize = 10
-    
-    stacks = {
-    terr for terr in gameState.playerDict[player]["territories"]
-    if gameState.map.graph.nodes[terr]["troops"] >= percCutoff or gameState.map.graph.nodes[terr]["troops"] >= largeStackSize
-    }   
-    
-    return stacks
 
 
 def weightNode(node : int, gameState : GameState, territories : Territories) -> int:
@@ -75,98 +51,6 @@ def weightNode(node : int, gameState : GameState, territories : Territories) -> 
         nodeWeight = nodeWeight * 10000
                      
     return nodeWeight
-
-    
-def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
-    """
-    Given a list of target territories, calculates the required moves to attack 
-    all of them in the most efficient possible way.
-    """
-    pass
-    
-    
-    
-    
-
-def fortify(gameState : GameState, territories : Territories) -> Fortify:
-    """
-    Given a list of target territories, calculates the best possible 
-    fortify action
-    """
-    # Applies a fortify heuristic? Then takes into account desired territories?
-    pass
-    
-
-
-
-
-
-
-
-def validateActionSet(actionSet : ActionSet) -> bool:
-    """
-    Given a set of actions, validates whether they are mutually possible in sequence.
-    """
-    killSet = set()
-    takeSet = set()
-    breakSet = set()
-
-
-    # Basic check to ensure that actions aren't attempting to kill a player and then
-    # take their bonus
-    for action in actionSet:
-        if isinstance(action, KillPlayer):
-            killSet.add(action.player)
-        elif isinstance(action, BreakBonus):
-            breakSet.add(action.player)
-        elif isinstance(action, TakeBonus):
-            takeSet.add(action.player)
-            
-    # Returns check of overlap. set returns true if non empty I believe    
-    return not ((killSet & breakSet) or (killSet & takeSet) or (breakSet & takeSet))
-
-
-def pruneActionSeq(actionSeq : ActionSet, gameState : GameState) -> bool:   
-    """
-    Given the a set of actions to be performed simultaniously, performs iterative 
-    pruning to eliminate as many action possibilites as possible. In this case 
-    "iterative" means that it should do as many simple checks for each 
-    action's viability as possible before serious calculations. This is 
-    essentially finding the lower bound of action cost, comparing it with 
-    the upper bound of action reward, and determining whether the action 
-    is profitable. Returns a list of viable actions for concrete 
-    calculations and heuristics.
-    """
-    # Example pseudo code for pruning the killPlayer action:
-    #  - calculate the simple expected value of remaining troops and 
-    #    cards, territories and bonuses after killing the player.
-    #  - if profitable, do a super auto pets style expected value 
-    #    attacks of largest owned troop stacks attacking theirs, and 
-    #    second largest, down to the smallest. Recalculate troop distribution
-    #    and profitability. If still profitable, return the action for future 
-    #    pathing calculations. 
-    return True
-
-
-
-def generateActionSeq(actionDict : Dict[ActionType, Set[ActionSet]], length : int) -> Set[ActionSet]:
-    """
-    Given a list of actions, generates the sequence of actions that should be 
-    taken. This should be the final step in the action generation process. 
-    """
-    
-    if length == 1:
-        return set().union(*actionDict.values())
-    
-    else:
-        combSet = actionDict[ActionType.KILLPLAYER] | actionDict[ActionType.TAKEBONUS] | actionDict[ActionType.BREAKBONUS] | actionDict[ActionType.EXPANDBORDERS] | actionDict[ActionType.MIGRATE] 
-        combinations = {frozenset(comb) for comb in itertools.combinations(combSet, length)}
-        return {comb for comb in combinations if validateActionSet(comb)}
-
-
-
-
-
 
 
 def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple[nx.DiGraph, int, int]:
@@ -390,4 +274,134 @@ def attackSimple(gameState : GameState, territories : Territories) -> Optional[T
     attack = graphToAttack(gameState, attackGraph, stack, gameState.map.graph.nodes[stack]["troops"] + draftDict[stack])
     
     return (draft, attack)
+
+
+
+def generalDraft(gameState : GameState, territories : Territories) -> Draft:
+    pass
+
+
     
+def generalAttack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
+    """
+    Given a list of target territories, calculates the required moves to attack 
+    all of them in the most efficient possible way.
+    """
+    pass
+    
+    
+def attackTerritory(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
+    """
+    Given a list of target territories, calculates the required moves to attack 
+    all of them in the most efficient possible way.
+    """
+    pass    
+    
+
+def generalFortify(gameState : GameState) -> Fortify:
+    """
+    Given a list of target territories, calculates the best possible 
+    fortify action
+    """
+    # Attempts to shore up gaping hole in defences
+    
+    # For owned (or nearly owned) bonuses, 
+        # - checks all borders to see weak points, 
+        # - finds troops to disperse
+    
+    # Attempts to reclaim distant stack
+    
+    # For all stacks 
+        # checks if stack is distant to bonuses
+        # returns stack to bonus
+    
+    # Attempts to ferry troops from internal territories
+    
+    # For all internal territories
+        # checks if territory has too many troops
+        # returns troops to border
+    
+    # Increases troop density 
+    # Takes second least dense stack and merges.
+    
+    
+    stacks = stackSelect(gameState, gameState.agentID)
+    
+    
+    
+    
+    
+    # Applies a fortify heuristic? Then takes into account desired territories?
+    pass
+    
+
+
+
+
+
+
+
+def validateActionSet(actionSet : ActionSet) -> bool:
+    """
+    Given a set of actions, validates whether they are mutually possible in sequence.
+    """
+    killSet = set()
+    takeSet = set()
+    breakSet = set()
+
+
+    # Basic check to ensure that actions aren't attempting to kill a player and then
+    # take their bonus
+    for action in actionSet:
+        if isinstance(action, KillPlayer):
+            killSet.add(action.player)
+        elif isinstance(action, BreakBonus):
+            breakSet.add(action.player)
+        elif isinstance(action, TakeBonus):
+            takeSet.add(action.player)
+            
+    # Returns check of overlap. set returns true if non empty I believe    
+    return not ((killSet & breakSet) or (killSet & takeSet) or (breakSet & takeSet))
+
+
+def pruneActionSeq(actionSeq : ActionSet, gameState : GameState) -> bool:   
+    """
+    Given the a set of actions to be performed simultaniously, performs iterative 
+    pruning to eliminate as many action possibilites as possible. In this case 
+    "iterative" means that it should do as many simple checks for each 
+    action's viability as possible before serious calculations. This is 
+    essentially finding the lower bound of action cost, comparing it with 
+    the upper bound of action reward, and determining whether the action 
+    is profitable. Returns a list of viable actions for concrete 
+    calculations and heuristics.
+    """
+    # Example pseudo code for pruning the killPlayer action:
+    #  - calculate the simple expected value of remaining troops and 
+    #    cards, territories and bonuses after killing the player.
+    #  - if profitable, do a super auto pets style expected value 
+    #    attacks of largest owned troop stacks attacking theirs, and 
+    #    second largest, down to the smallest. Recalculate troop distribution
+    #    and profitability. If still profitable, return the action for future 
+    #    pathing calculations. 
+    return True
+
+
+
+def generateActionSeq(actionDict : Dict[ActionType, Set[ActionSet]], length : int) -> Set[ActionSet]:
+    """
+    Given a list of actions, generates the sequence of actions that should be 
+    taken. This should be the final step in the action generation process. 
+    """
+    
+    if length == 1:
+        return set().union(*actionDict.values())
+    
+    else:
+        combSet = actionDict[ActionType.KILLPLAYER] | actionDict[ActionType.TAKEBONUS] | actionDict[ActionType.BREAKBONUS] | actionDict[ActionType.EXPANDBORDERS] | actionDict[ActionType.MIGRATE] 
+        combinations = {frozenset(comb) for comb in itertools.combinations(combSet, length)}
+        return {comb for comb in combinations if validateActionSet(comb)}
+
+
+
+
+
