@@ -3,7 +3,7 @@ from .interface import *
 from .structures import GameState
 from .riskAI import riskAgent
 from .simpleAI import attackGraphSimple
-from .actionAI import attackGraphMulti
+from .multiAI import attackGraphMulti
 from .randAI import randAI
 from .drawInterface import drawArborescence
 
