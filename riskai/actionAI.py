@@ -2,7 +2,7 @@ from .structures import *
 from .actions import *
 from .drawInterface import drawArborescence, drawPath
 from .simpleAI import stackSelect, weightNode
-from .riskAI import findInternalTerritories
+from .heuristic import findInternalTerritories
 
 
 # Does not work as arborescence is the wrong function for the task. Could try territory drafting process. 

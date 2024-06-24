@@ -16,7 +16,7 @@ bonus_color_map = {
     }
 
 
-background_image_path = os.path.join('tests', 'BlankSlate3.png')
+background_image_path = os.path.join('tests', 'BlankSlate12.png')
 background_image = mpimg.imread(background_image_path)
 
 

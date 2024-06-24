@@ -5,6 +5,7 @@ import itertools
 from .riskAI import makeTrade, draftTroopsAmount, stackSelect
 from .dice import perfectDice
 from .drawInterface import drawArborescence, drawPath
+from .heuristic import findBorders, findInternalTerritories
 
 
 
@@ -296,6 +297,21 @@ def attackTerritory(gameState : GameState, territories : Territories) -> Tuple[D
     all of them in the most efficient possible way.
     """
     pass    
+
+def contestedBonuses(player : int, gameState : GameState) -> set[str]:
+    """Gets list of which bonuses are planned to be taken by the agent"""
+    contestedBonuses = set()
+    
+    for bonus in gameState.map.bonuses:
+        # Planned bonuses cannot already be taken
+        if bonus not in gameState.playerDict[player]["bonuses"]:
+            # Check how many territories are owned by the agent
+            terrsOwned = len(gameState.map.bonuses[bonus]["territories"] & gameState.playerDict[player]["territories"])
+            # If the agent owns more than half of the territories in the bonus, it is contested
+            if terrsOwned / len(gameState.map.bonuses[bonus]["territories"]) > 0.5:
+                contestedBonuses.add(bonus)
+    
+    return contestedBonuses
     
 
 def generalFortify(gameState : GameState) -> Fortify:
@@ -304,6 +320,10 @@ def generalFortify(gameState : GameState) -> Fortify:
     fortify action
     """
     # Attempts to shore up gaping hole in defences
+    
+    borders = findBorders(gameState.agentID, gameState)
+    minBorder = min(borders)
+    
     
     # For owned (or nearly owned) bonuses, 
         # - checks all borders to see weak points, 

@@ -204,7 +204,7 @@ def getTerritory(map : Map, player : Optional[int], aboveOne : bool) -> int:
     return territoryID
 
 
-def getTerritorySet(map : Map) -> set[int]:
+def getTerritories(map : Map) -> Territories:
     click.echo("Getting set of territories:")
     territories = set()
     loopFlag = True

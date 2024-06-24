@@ -185,6 +185,16 @@ def ownedTerrConnected(player : int, gameState : GameState, terr1 : int, terr2 :
     # Check if there is a path between terr1 and terr2 in the subgraph
     return nx.has_path(playerSubgraph, terr1, terr2)
 
+    
+
+
+
+
+    
+    
+    
+    
+
 
 
 def stackSelect(gameState : GameState, player: int) -> Territories:
@@ -272,19 +282,6 @@ def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Att
     
     
     
-def findInternalTerritories(player : int, gameState : GameState) -> Territories:
-    """
-    For a given player, finds all territories which have no external borders.
-    """
-    internalTerr = []
-    # Iterate through blue nodes and check their neighbours
-    # Currently treating node as the int index from another list, does this work?
-    for node in gameState.playerDict[player]["territories"]:
-        if all(neighbour in gameState.playerDict[player]["territories"] for neighbour in gameState.map.graph.neighbors(node)):
-            internalTerr.append(node)
-    return internalTerr
-    
-    
 
 def fortify(gameState : GameState, territories : Territories) -> Fortify:
     """
@@ -360,6 +357,7 @@ def validateActionSet(actionSet : ActionSet) -> bool:
     return not ((killSet & breakSet) or (killSet & takeSet) or (breakSet & takeSet))
 
 
+# @ Will not implement pruning
 def pruneActionSeq(actionSeq : ActionSet, gameState : GameState) -> bool:   
     """
     Given the a set of actions to be performed simultaniously, performs iterative 

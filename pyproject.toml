@@ -11,6 +11,7 @@ python = "^3.11"
 networkx = "^3.3"
 click = "^8.1.7"
 matplotlib = "^3.8.4"
+pandas = "^2.2.2"
 
 
 [build-system]

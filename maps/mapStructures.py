@@ -25,7 +25,7 @@ class MapType(Enum):
             return cls[name.upper()]
         except KeyError:
             raise ValueError(f"Invalid map name: {name}")
-
+    
 
 
 class Map:
@@ -48,6 +48,18 @@ class Map:
                 self.mapType = mapType
                 self.graph = Classic
                 self.bonuses = classicBonusDict # should be AsiaBonusVals
+                
+        # Adds territory names for interface        
         self.territoryNames = [node["name"] for _, node in sorted(self.graph.nodes(data=True), key=lambda x: x[0])]
 
-        # self.territoryNames = [node["name"] for _, node in self.graph.nodes(data=True)]
+
+        # Adds list of border territories for calculations
+        self.borderTerr = set()
+        # Iterates through all nodes, checking if it has a border with a non-bonus territory
+        for node in self.graph.nodes():
+            # map.graph.nodes[node]["bonus"] gets bonus of node
+            # map.bonuses[bonus]["territories"] gets territories for bonus 
+            # Function checks if a node has any neighbours not in the bonus. If so, it is 
+            # a border territory.
+            if any(neighbour not in self.bonuses[(self.graph.nodes[node]["bonus"])]["territories"] for neighbour in self.graph.neighbors(node)):          
+                self.borderTerr.add(node)
