@@ -4,6 +4,7 @@ from typing import List, Dict
 import itertools
 from .riskAI import makeTrade, draftTroopsAmount
 from .dice import perfectDice
+from .drawInterface import drawArborescence, drawPath
 
 
 def ownedTerrConnected(player : int, gameState : GameState, terr1 : int, terr2 : int) -> bool:
@@ -44,7 +45,7 @@ def stackSelect(gameState : GameState, player: int) -> Territories:
     return stacks
 
 
-def weightNode(node : int, gameState : GameState, territories : Territories) -> int:
+def weightNode(node : int, gameState : GameState, territories : Territories) -> float:
     """
     Given a node, calculates the weight of the node based on the current game state and territories. 
     """
@@ -74,11 +75,13 @@ def weightNode(node : int, gameState : GameState, territories : Territories) -> 
         # Normalises troop weight
         nodeWeight = gameState.map.graph.nodes[node]["troops"] // gameState.playerDict[gameState.map.graph.nodes[node]["player"]]["troops"] 
         
+        nodeWeight += len(list(gameState.map.graph.neighbors(node))) // 10
+        
         for neighbour in gameState.map.graph.neighbors(node):
             if neighbour in territories:
-                nodeWeight -= 1
+                nodeWeight -= 0.1
             elif gameState.map.graph.nodes[neighbour]["player"] != gameState.agentID:
-                nodeWeight += 1
+                nodeWeight += 0.1
                 
     if node not in territories:
         nodeWeight = nodeWeight * 10000
@@ -242,8 +245,15 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
     
     # Unsure as to whether this correctly creates the directed graph
     for u, v in componentGraph.edges():
-        directedGraph.add_edge(u, v, weight=weightDict[v])
-        directedGraph.add_edge(v, u, weight=weightDict[u])
+        # It should also be less desirable for worse nodes to travel into 
+        # good nodes.
+        if weightDict[v] > weightDict[u]:
+            directedGraph.add_edge(u, v, weight=weightDict[v])
+            directedGraph.add_edge(v, u, weight=weightDict[u] + weightDict[v] // 10)
+        # ignores equal case and introduces random bias but should be very rare
+        else:
+            directedGraph.add_edge(u, v, weight=(weightDict[v] + weightDict[u] // 10))
+            directedGraph.add_edge(v, u, weight=weightDict[u])
         
     minTroops = float('inf')
     minBranches = float('inf')
@@ -251,6 +261,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
     minStack = 0    
     
     for stack in filteredStacks:
+        print("Stack is ", stack)
         
         # Add stack node to the graph for MSA 
         directedGraph.add_node(stack)
@@ -259,7 +270,7 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
         for neighbour in gameState.map.graph.neighbors(stack):
             if neighbour in foundComponent:
                 # They should only be in the direction away from the stack
-                directedGraph.add_edge(stack, neighbour, weight=weightDict[neighbour])
+                directedGraph.add_edge(stack, neighbour, weight=weightDict[neighbour] // 10)
                 
                 
         # Make arborescence
@@ -268,21 +279,31 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
         # Filter out neutral territories as best as possible
         # Get all neutral nodes which are not desired to attack and are not the 
         # stack attacking from 
-        neutralNodes = arborescence.nodes() - territories - {stack}
+        neutralNodes = set(arborescence.nodes()) - territories - {stack}
+        print("Neutral nodes")
         print(neutralNodes)
-        print(arborescence.nodes())
-        print(arborescence)
-        
+        print(type(neutralNodes))
+        drawArborescence(gameState, arborescence, (stack + 100))
+       
         # Loop until no more neutral nodes can be removed
         trimmedNode = True 
         while trimmedNode:
             trimmedNode = False
             
-            for node in neutralNodes:
-                # If neutral node is a lead then remove it
-                if arborescence.out_degree([node]) == 0:
+            # Creates a list so there is a separate object to loop over while neutral nodes is modified
+            for node in list(neutralNodes):
+                # If neutral node is a leaf then remove it
+                print("curr node is ", node)
+                if (arborescence.out_degree(node)) == 0:
+                    print("Trimmed a node")
                     arborescence.remove_node(node)
+                    # Importantly removes node from list of nodes to search and trim
+                    neutralNodes.remove(node)
+
                     trimmedNode = True
+                    
+        drawPath(gameState, arborescence, stack)
+
         
         # Check how optimal the arborescence is
         tempTroops = 0 
