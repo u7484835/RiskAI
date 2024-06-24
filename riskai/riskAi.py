@@ -280,7 +280,7 @@ def findInternalTerritories(player : int, gameState : GameState) -> Territories:
     # Iterate through blue nodes and check their neighbours
     # Currently treating node as the int index from another list, does this work?
     for node in gameState.playerDict[player]["territories"]:
-        if all(neighbour in gameState.playerDict[player]["territories"] for neighbour in gameState.graph.neighbors(node)):
+        if all(neighbour in gameState.playerDict[player]["territories"] for neighbour in gameState.map.graph.neighbors(node)):
             internalTerr.append(node)
     return internalTerr
     

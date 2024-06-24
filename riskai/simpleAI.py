@@ -7,18 +7,6 @@ from .dice import perfectDice
 from .drawInterface import drawArborescence, drawPath
 
 
-def ownedTerrConnected(player : int, gameState : GameState, terr1 : int, terr2 : int) -> bool:
-    """
-    Given a player and two territories, checks if they are connected by owned territories. Used to 
-    determine whether a player can fortify from one location to another. 
-    """
-    # Create a subgraph containing only nodes owned by the player
-    playerSubgraph = gameState.map.graph.subgraph(gameState.playerDict[player]["territories"])
-    
-    # Check if there is a path between terr1 and terr2 in the subgraph
-    return nx.has_path(playerSubgraph, terr1, terr2)
-
-
 
 def stackSelect(gameState : GameState, player: int) -> Territories:
     """
@@ -45,7 +33,7 @@ def stackSelect(gameState : GameState, player: int) -> Territories:
     return stacks
 
 
-def weightNode(node : int, gameState : GameState, territories : Territories) -> float:
+def weightNode(node : int, gameState : GameState, territories : Territories) -> int:
     """
     Given a node, calculates the weight of the node based on the current game state and territories. 
     """
@@ -97,18 +85,6 @@ def attack(gameState : GameState, territories : Territories) -> Tuple[Draft, Att
     pass
     
     
-    
-def findInternalTerritories(player : int, gameState : GameState) -> Territories:
-    """
-    For a given player, finds all territories which have no external borders.
-    """
-    internalTerr = []
-    # Iterate through blue nodes and check their neighbours
-    # Currently treating node as the int index from another list, does this work?
-    for node in gameState.playerDict[player]["territories"]:
-        if all(neighbour in gameState.playerDict[player]["territories"] for neighbour in gameState.graph.neighbors(node)):
-            internalTerr.append(node)
-    return internalTerr
     
     
 
@@ -245,15 +221,8 @@ def attackGraphSimple(gameState : GameState, territories : Territories) -> Tuple
     
     # Unsure as to whether this correctly creates the directed graph
     for u, v in componentGraph.edges():
-        # It should also be less desirable for worse nodes to travel into 
-        # good nodes.
-        if weightDict[v] > weightDict[u]:
-            directedGraph.add_edge(u, v, weight=weightDict[v])
-            directedGraph.add_edge(v, u, weight=weightDict[u] + weightDict[v] // 10)
-        # ignores equal case and introduces random bias but should be very rare
-        else:
-            directedGraph.add_edge(u, v, weight=(weightDict[v] + weightDict[u] // 10))
-            directedGraph.add_edge(v, u, weight=weightDict[u])
+        directedGraph.add_edge(u, v, weight=weightDict[v])
+        directedGraph.add_edge(v, u, weight=weightDict[u])
         
     minTroops = float('inf')
     minBranches = float('inf')

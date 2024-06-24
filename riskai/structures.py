@@ -93,7 +93,7 @@ Represents a full turn which a player should take. Will be the output of the AI 
 """
 
 
-
+# Territories should be a set, not a list. 
 Territories: TypeAlias = List[int]
 """
 Represents a set of territories on the map. Each int represented the ID of a node. 

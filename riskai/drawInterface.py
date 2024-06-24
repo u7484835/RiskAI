@@ -17,6 +17,7 @@ def drawBoard(gameState : GameState):
     backgroundPath = os.path.join('tests', 'BlankSlate12.png')
     backgroundIm = mpimg.imread(backgroundPath)
     
+    plt.figure(figsize=(10, 7.5), dpi=300)
     ax = plt.subplot(111)
     
     # Gets list of colours
@@ -45,12 +46,16 @@ def drawBoard(gameState : GameState):
 
 
 
-def drawArborescence(gameState : GameState, arbGraph : nx.Graph):
+def drawArborescence(gameState : GameState, arbGraph : nx.Graph, stack : int):
+    """
+    Draws the arborescence, adds stack name for identification
+    """
     # Gets background image
     backgroundPath = os.path.join('tests', 'BlankSlate12.png')
     backgroundIm = mpimg.imread(backgroundPath)
     
-    ax = plt.subplot(111)
+    plt.figure(figsize=(10, 7.5), dpi=300)
+    ax = plt.subplot(111)    
     
     # Gets list of colours
     playerNodes = [gameState.map.graph.nodes[node]["player"] for node in arbGraph.nodes()]
@@ -67,7 +72,7 @@ def drawArborescence(gameState : GameState, arbGraph : nx.Graph):
     # Gets filtered pos dict
     filtPos = {key: newClassicPosCoords[key] for key in arbGraph.nodes if key in newClassicPosCoords}
 
-    nx.draw_networkx(arbGraph, filtPos, labels = troopLabels, with_labels=True, font_weight="bold", node_color=nodeColours, arrowstyle="->", arrowsize=10, width=2)
+    nx.draw_networkx(arbGraph, filtPos, labels = troopLabels, with_labels=True, font_weight="bold", node_size = 300, node_color=nodeColours, arrowstyle="->", arrowsize=10, width=2, edge_color = 'r')
     """nodes = nx.draw_networkx_nodes(arbGraph, filtPos, labels = troopLabels, with_labels=True, font_weight="bold", node_color=nodeColours)
     edges = nx.draw_networkx_edges(
         arbGraph,
@@ -76,9 +81,53 @@ def drawArborescence(gameState : GameState, arbGraph : nx.Graph):
         arrowsize=10,
         width=2,
     )"""
+    
+    name = f'arborescence{stack}.png'
 
     # Save the figure with the custom background
-    outputImPath = os.path.join('riskai', 'arborescnece.png')
+    outputImPath = os.path.join('riskai', name)
+    plt.savefig(outputImPath, bbox_inches='tight', transparent=True)
+    
+    # Close the current figure to prevent blocking
+    plt.close()
+
+
+
+def drawPath(gameState : GameState, arbGraph : nx.Graph, stack : int):
+    """
+    Draws the arborescence, adds stack name for identification
+    """
+    # Gets background image
+    backgroundPath = os.path.join('tests', 'BlankSlate12.png')
+    backgroundIm = mpimg.imread(backgroundPath)
+    
+    plt.figure(figsize=(10, 7.5), dpi=300)
+    ax = plt.subplot(111)    
+    
+    # Gets list of colours
+    playerNodes = [gameState.map.graph.nodes[node]["player"] for node in arbGraph.nodes()]
+    nodeColours = [gameState.playerDict[player]["colour"] for player in playerNodes]
+    
+    # Changes black to grey for visibility
+    nodeColours = ["grey" if c == "black" else c for c in nodeColours]
+    
+    troopLabels = {node: gameState.map.graph.nodes[node]["troops"]  for node in arbGraph.nodes()}
+    
+    # Makes background image the background of the plot
+    ax.imshow(backgroundIm, extent=[0, backgroundIm.shape[1], 0, backgroundIm.shape[0]])
+    
+    # Gets filtered pos dict
+    filtPos = {key: newClassicPosCoords[key] for key in arbGraph.nodes if key in newClassicPosCoords}
+    
+    troopLabelsFull = {node: data['troops'] for node, data in Classic.nodes(data=True)}
+    nx.draw(gameState.map.graph, pos = newClassicPosCoords, labels = troopLabelsFull, with_labels=True, font_weight="bold", node_color='grey')
+    nx.draw_networkx(arbGraph, filtPos, labels = troopLabels, with_labels=True, font_weight="bold", node_size = 300, node_color=nodeColours, arrowstyle="->", arrowsize=10, width=2, edge_color = 'r')
+
+    
+    name = f'arborescence{stack}.png'
+
+    # Save the figure with the custom background
+    outputImPath = os.path.join('riskai', name)
     plt.savefig(outputImPath, bbox_inches='tight', transparent=True)
     
     # Close the current figure to prevent blocking

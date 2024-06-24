@@ -3,6 +3,7 @@ from .interface import *
 from .structures import GameState
 from .riskAI import riskAgent
 from .simpleAI import attackGraphSimple
+from .actionAI import attackGraphMulti
 from .randAI import randAI
 from .drawInterface import drawArborescence
 
@@ -22,11 +23,12 @@ def funcPrompt() -> int:
     click.echo("Please select the mode with which you wish to use this agent")
     click.echo("1. Play a game with the strongest agent against other players")
     click.echo("2. Play a game with the random agent against other players")
-    click.echo("3. Test the minimum arborescence algorithm on a static position")
-    click.echo("4. Evaluate a static position using the heuristic")
-    click.echo("5. Use the debugging features for a variable player game")
-    click.echo("6. <Misc to be added>")
-    click.echo("7. Exit")
+    click.echo("3. Test the single stack minimum arborescence algorithm on a static position")
+    click.echo("4. Test the multi stack msa on a static position")
+    click.echo("5. Evaluate a static position using the heuristic")
+    click.echo("6. Use the debugging features for a variable player game")
+    click.echo("7. <Misc to be added>")
+    click.echo("8. Exit")
     return click.prompt("Choice", type=click.IntRange(min=1, max=7))
 
 def variableAgentGame(gameState : GameState, agentType : str):
@@ -61,11 +63,23 @@ def variableAgentGame(gameState : GameState, agentType : str):
         
     
 
-def msaDebug(gameState : GameState):
+def msaSimpleDebug(gameState : GameState):
     drawBoard(gameState)
     territories = getTerritorySet(gameState.map)
     attackGraph, stack, sumTroops = attackGraphSimple(gameState, territories)
-    drawArborescence(gameState, attackGraph)
+    drawArborescence(gameState, attackGraph, 100)
+    print("Min sum troops found is", sumTroops)
+    click.echo("Finished drawing arborescence")
+
+def msaMultiDebug(gameState : GameState):
+    drawBoard(gameState)
+    territories = getTerritorySet(gameState.map)
+    attackGraph, stacks, sumTroops = attackGraphMulti(gameState, territories)
+    drawArborescence(gameState, attackGraph, 300)
+    print("Min sum troops found is", sumTroops)
+    print("Stacks used are", stacks)
+
+    click.echo("Finished drawing arborescence")
 
 
 def heuristicEval():
@@ -88,14 +102,16 @@ def main():
         case 2:
             variableAgentGame(gameState, "randAI")
         case 3:
-            msaDebug(gameState)
+            msaSimpleDebug(gameState)
         case 4:
-            heuristicEval(gameState)
+            msaMultiDebug(gameState)
         case 5:
-            debugVariableGame(gameState)
+            heuristicEval(gameState)
         case 6:
-            pass
+            debugVariableGame(gameState)
         case 7:
+            pass
+        case 8:
             print("Exiting...")
     
     
