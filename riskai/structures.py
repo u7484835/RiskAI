@@ -93,8 +93,7 @@ Represents a full turn which a player should take. Will be the output of the AI 
 """
 
 
-# Territories should be a set, not a list. 
-Territories: TypeAlias = List[int]
+Territories: TypeAlias = set[int]
 """
 Represents a set of territories on the map. Each int represented the ID of a node. 
 """
@@ -144,7 +143,7 @@ class PlayerDict(TypedDict):
     bonusesHeld: Set[str]
     prevIncome: int
     cardsNum: int
-    dangerLevel: int
+    dangerLevel: int # @For later expansion
         
         
         
@@ -180,17 +179,5 @@ class GameState:
         self.round = round
         self.playerDict = playerDict
         self.playersAlive = playersAlive
-        self.relationsMatrix = relationsMatrix
-        self.cards = cards
-        
-        
-
-        
-        
-        
-    # Decide whether to have the heuristic as a method or a function in a separate file. 
-    def heuristic(self) -> int:
-        pass
-    
-    # Also decide whether to have functions like incrementing the turn, adding a card
-       
+        self.relationsMatrix = relationsMatrix # @Currently unimplemented
+        self.cards = cards       
