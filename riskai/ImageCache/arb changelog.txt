@@ -1,0 +1,10 @@
+using arborescence 2 setup
+
+arb1 no changes 
+arb2 ? flip territory +/- 0.1 nums
+arb3 add preference to go to nodes with more neighbours (nodeWeight += len(list
+arb4 double direction node edge weighting to decrease desirablility of bad nodes connections
+arb5 single direction node edge weighting (in edge add loop)
+arb6 revert changes, stick with
+
+arb7 using arborescence 3 setup
