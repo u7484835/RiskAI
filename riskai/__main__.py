@@ -64,25 +64,32 @@ def variableAgentGame(gameState : GameState, agentType : str):
     
 
 def msaSimpleDebug(gameState : GameState):
+    # Outputs board for debugging
     drawBoard(gameState)
-    territories = getTerritorySet(gameState.map)
+    # Gets list of territories to capture
+    territories = getTerritories(gameState.map)
+    # Gets simple attack graph
     attackGraph, stack, sumTroops = attackGraphSimple(gameState, territories)
+    # Outputs results
     drawArborescence(gameState, attackGraph, 100)
     print("Min sum troops found is", sumTroops)
-    click.echo("Finished drawing arborescence")
+    click.echo("Finished drawing simple arborescence")
 
 def msaMultiDebug(gameState : GameState):
+    # Operates as simple msa. Currenlty not working.
+    click.echo("NOTE: This function is broken as incorrect graph algorithm has been used to generate pathing. This will require further research. ")
     drawBoard(gameState)
-    territories = getTerritorySet(gameState.map)
+    territories = getTerritories(gameState.map)
     attackGraph, stacks, sumTroops = attackGraphMulti(gameState, territories)
     drawArborescence(gameState, attackGraph, 300)
     print("Min sum troops found is", sumTroops)
     print("Stacks used are", stacks)
 
-    click.echo("Finished drawing arborescence")
+    click.echo("Finished drawing multi arborescence")
 
 
-def heuristicEval():
+def heuristicEval(gameState : GameState):
+    eval = heuristicEval(gameState)
     pass
 
 def debugVariableGame():
