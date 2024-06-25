@@ -5,7 +5,7 @@ from .structures import *
 from maps.mapStructures import MapType, Map
 from typing import Optional
 from .drawInterface import drawBoard
-from .riskAI import draftTroopsAmount, ownedTerrConnected
+from .agentHelper import draftTroopsAmount, ownedTerrConnected
 
 
 

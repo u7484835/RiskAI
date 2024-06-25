@@ -1,8 +1,8 @@
 # Framework to encode all abstract actions, provide pruning 
 # # techniques and describe their purpose. 
 from enum import Enum
-from typing import TypeAlias, Set
-from .structures import GameState
+from typing import TypeAlias, Set, Optional
+from .structures import GameState, Territories
 
 
 class ActionType(Enum):
@@ -11,32 +11,26 @@ class ActionType(Enum):
     one territory during a turn.
 
     """
-    KILLPLAYER = 1
-    TAKEBONUS = 2
-    BREAKBONUS = 3
-    EXPANDBORDERS = 6 
-    MIGRATE = 8
-    TAKETERRITORIES = 9
-    TAKECARD = 10
-    DEFENDBORDERS = 11
+    KILLPLAYER = 1 # player terrs
+    TAKEBONUS = 2 # bonus terrs
+    BREAKBONUS = 3 # bonus terr? 
+    EXPANDBORDERS = 6 # expand terrs
+    TAKETERRITORIES = 9 # take terrs
+    TAKECARD = 10 # card terr
     NOATTACK = 13
     
     
 # Going with attack/foritfy territory list underpinning actions. 
 # This controls the graph structure of action sequencing. 
 actionSequenceDict = {
-    ActionType.KILLPLAYER: [act for act in ActionType if act not in {ActionType.TAKECARD, ActionType.DEFENDBORDERS, 
-                                                                     ActionType.NOATTACK}],
+    ActionType.KILLPLAYER: [act for act in ActionType if act not in {ActionType.TAKECARD, ActionType.NOATTACK}],
     ActionType.TAKEBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKECARD, 
-                                                                    ActionType.DEFENDBORDERS, ActionType.NOATTACK}],
-    ActionType.BREAKBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS,
-                                                                     ActionType.TAKECARD, ActionType.DEFENDBORDERS, 
                                                                      ActionType.NOATTACK}],
+    ActionType.BREAKBONUS: [act for act in ActionType if act not in {ActionType.KILLPLAYER, ActionType.TAKEBONUS,
+                                                                     ActionType.TAKECARD, ActionType.NOATTACK}],
     ActionType.EXPANDBORDERS: [ActionType.EXPANDBORDERS, ActionType.TAKETERRITORIES],
-    ActionType.MIGRATE: [ActionType.TAKETERRITORIES],
     ActionType.TAKETERRITORIES: [ActionType.TAKETERRITORIES],
-    ActionType.TAKECARD: [ActionType.DEFENDBORDERS],
-    ActionType.DEFENDBORDERS: [],
+    ActionType.TAKECARD: [],
     ActionType.NOATTACK: []
 }
 
@@ -101,6 +95,9 @@ def generateKPSet(player : int, gameState: GameState) -> Set[KillPlayer]:
     return {KillPlayer(aliveP) for aliveP in gameState.playersAlive if aliveP != player}
 
 
+def kpData(gameState : GameState, kp : KillPlayer) -> Optional[Territories]:
+    return gameState.playerDict[kp.player]["territories"]
+
 
 class TakeBonus(Action):
     """
@@ -138,17 +135,18 @@ def generateTBSet(player : int, gameState: GameState) -> Set[TakeBonus]:
     
     actions = set()
     for bonus in gameState.map.bonuses.keys():
-        if bonus not in gameState.playerDict[player]["bonuses"]:
+        if bonus not in gameState.playerDict[player]["bonusesHeld"]:
             owningPlayer = None
             for player in gameState.playersAlive:
-                if bonus in gameState.playerDict[player]["bonuses"]:
+                if bonus in gameState.playerDict[player]["bonusesHeld"]:
                     owningPlayer = player
                     break
             actions.add(TakeBonus(bonus, owningPlayer))
 
     return actions
 
-
+def tbData(gameState : GameState, tb : TakeBonus) -> Optional[Territories]:
+    return gameState.map.bonuses[tb.bonus]["territories"]
 
 class BreakBonus(Action):
     """
@@ -184,9 +182,22 @@ def generateBBSet(player : int, gameState: GameState) -> Set[BreakBonus]:
     return {
         BreakBonus(aliveP, bonus)
         for aliveP in gameState.playersAlive if aliveP != player
-        for bonus in gameState.playerDict[aliveP]["bonuses"]
+        for bonus in gameState.playerDict[aliveP]["bonusesHeld"]
     }
 
+
+def bbDataWeakest(gameState : GameState, bb : BreakBonus) -> Optional[Territories]:
+    bonusBorders = gameState.map.bonuses[bb.bonus]["territories"] & gameState.map.borderTerr
+    
+    minTroops = float("inf")
+    minTerr = None
+    
+    for terr in bonusBorders:
+        if gameState.map.graph.nodes[terr]["troops"] < minTroops:
+            minTroops = gameState.map.graph.nodes[terr]["troops"]
+            minTerr = terr
+        
+    return {minTerr}
 
 
 
@@ -215,6 +226,34 @@ class ExpandBorders(Action):
             return hash(self.territories)
         
         
+def ebData(gameState : GameState, eb : ExpandBorders) -> Optional[Territories]:
+    """
+    Finds the territory which is a bonus border adjacent to the agent's territories
+    with the least troops to capture. 
+    """
+    borders = set()
+    
+    for border in gameState.map.borderTerr:
+        if gameState.map.graph.nodes[border]["player"] != gameState.agentID:
+            if any(neighbour in gameState.playerDict[gameState.agentID]["territories"] for neighbour in gameState.map.graph.neighbors(border)):
+                borders.add(border)
+                
+                
+    if len(borders) == 0:
+        return None
+    
+    minTroops = float("inf")
+    minTerr = None
+    
+    for terr in borders:
+        if gameState.map.graph.nodes[terr]["troops"] < minTroops:
+            minTroops = gameState.map.graph.nodes[terr]["troops"]
+            minTerr = terr
+        
+    return {minTerr}
+
+        
+        
 # Generateing solo set element because expand borders locations should be chosen on calulation. 
 # Not sure whether that should be here or in actual pre-MST calculations?
 def generateEBSet() -> Set[ExpandBorders]:
@@ -225,34 +264,9 @@ def generateEBSet() -> Set[ExpandBorders]:
 
 
 
-
-class DefendBorders(Action):
-    """
-    Add troops to borders of territory clusters or bonuses to make 
-    them less likely to be attacked.
-
-    Attributes:
-        borders (Set[int]): The border territories to strengthen
-    """
-    def __init__(self, borders : Set[int]):
-        super().__init__(ActionType.DEFENDBORDERS)
-        self.borders = borders
-    
-
-    def __eq__(self, other):
-        return isinstance(other, DefendBorders)
-
-
-# Same as EB but more concrete, there should only be 1 defend borders action.
-def generateDBSet() -> Set[DefendBorders]:
-    """
-    Generates all possible defend borders actions set.
-    """
-    return {DefendBorders(None)}
-
-
-
-
+# NOTE: Messy mismatch between class definition and practical usage. 
+# attack will never be used, essentially a dummy class as ebData is 
+# doing all territory work. 
 class TakeCard(Action):
     """
     Attack a single territory that has low troops to ensure a card is taken.
@@ -268,6 +282,10 @@ class TakeCard(Action):
 
     def __eq__(self, other):
         return isinstance(other, TakeCard)
+    
+
+    def __hash__(self):
+        return hash(self.attack)
 
 
 
@@ -278,31 +296,29 @@ def generateTCSet() -> Set[TakeCard]:
     return {TakeCard(None)}
 
 
-
-
-# Could be combined with flee by implementing a more robust location 
-# selecting algorithm
-class Migrate(Action):
+def tcData(gameState : GameState) -> Optional[Territories]:
     """
-    Migrate dense stacks of troops from one region of the map to another, 
-    usually for capturing bonuses.
-
-    Attributes:
-        territory (int): The end goal territory ID
+    Calculates the adjacent territory with the least troops to take attack.
     """
-    def __init__(self, territory : int):
-        super().__init__(ActionType.MIGRATE)
-        self.territory = territory
+    neighbours = set()
     
-    def __eq__(self, other):
-        return isinstance(other, Migrate)
+    for owned in gameState.playerDict[gameState.agentID]["territories"]:
+        for neighbour in gameState.map.graph.neighbors(owned):
+            if gameState.map.graph.nodes[neighbour]["player"] != gameState.agentID:
+                neighbours.add(neighbour)
     
     
-def generateMSet() -> Set[Migrate]:
-    """
-    Generates singleton Migrate action set.
-    """
-    return {Migrate(None)}    
+    minTroops = float("inf")
+    minTerr = None
+    
+    for terr in neighbours:
+        if gameState.map.graph.nodes[terr]["troops"] < minTroops:
+            minTroops = gameState.map.graph.nodes[terr]["troops"]
+            minTerr = terr
+        
+    return {minTerr}
+
+
     
 
 # !Could be implemented with the iterative deepening search that on depth 1 
@@ -326,6 +342,9 @@ class TakeTerritories(Action):
             return False
         return self.territory == other.territory
     
+    def __hash__(self):
+        return hash(self.territory)
+    
     
 def generateTTSet() -> Set[TakeTerritories]:
     """
@@ -334,12 +353,44 @@ def generateTTSet() -> Set[TakeTerritories]:
     return {TakeTerritories(None)}    
 
 
+def ttData(gameState : GameState, amount : int) -> Optional[Territories]:
+    """
+    Adds as many territories as possible to take until amount is reached. Adds territories 
+    in a breadth first fashion. While loop ensures that the function continues until 
+    all territories are added or the correct amount of random territories to take are reached. 
+    """
+    # Initialises looping vars
+    toTake = set()
+    addFlag = True
+    
+    # Halt when no more terrs can be added
+    while addFlag:
+        addFlag = False  
+        # Consider the neighbours of all owned terrs and all terrs planned to attack
+        loopTerr = gameState.playerDict[gameState.agentID]["territories"] | toTake
+        for owned in loopTerr:
+            for neighbour in gameState.map.graph.neighbors(owned):
+                # Check that terr to add is new
+                if neighbour not in loopTerr:
+                    addFlag = True 
+                    toTake.add(neighbour)
+                    # If amount has been met then return 
+                    if len(toTake) == amount:
+                        return toTake
+                    
+    return toTake
+
+
 class NoAttack(Action):
     """
     Do not attack, or take a card. Perhaps do not fortify.
     """
-    def __init__(self):
+    def __init__(self, terr):
         super().__init__(ActionType.NOATTACK)
+        self.terr = terr
+    
+    def __hash__(self):
+        return hash(self.terr)
         
 
 def generateNASet() -> Set[NoAttack]:
