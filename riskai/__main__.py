@@ -3,16 +3,19 @@ from .interface import *
 from .structures import GameState
 from .riskAI import riskAgent
 from .simpleAI import attackGraphSimple
-from .actionAI import attackGraphMulti
+from .multiAI import attackGraphMulti
 from .randAI import randAI
 from .drawInterface import drawArborescence
 
+# Defines how long an agent should take at maximum
+TIMECONSTRAINT = 5
 
 
 def getAgentTurn(gameState : GameState, agentType : str) -> Move:
     match agentType:
         case "actionAI":
-            return riskAgent(gameState)
+            
+            return riskAgent(gameState, TIMECONSTRAINT)
         case "randAI":
             return randAI(gameState)
         case _:

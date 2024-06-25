@@ -1,8 +1,7 @@
 from .structures import *
 from .actions import *
-from typing import List, Dict
 import random
-from .riskAI import makeTrade, draftTroopsAmount
+from .agentHelper import makeTrade, draftTroopsAmount
 
 
 

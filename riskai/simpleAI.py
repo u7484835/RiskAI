@@ -1,12 +1,8 @@
 from .structures import *
 from .actions import *
-from typing import List, Dict
-import itertools
-from .riskAI import makeTrade, draftTroopsAmount, stackSelect
+from .agentHelper import makeTrade, draftTroopsAmount, stackSelect, ownedTerrConnected, splitTroops
 from .dice import perfectDice
 from .drawInterface import drawArborescence, drawPath
-from .heuristic import findBorders, findInternalTerritories
-
 
 
 
@@ -210,19 +206,6 @@ def simpleDraft(gameState : GameState, stack : int) -> Draft:
     return (tradeList, [(stack, draftAmount)])
 
 
-def splitTroops(troopsNum : int, numSplits : int) -> List[int]:
-    """
-    Splits the troops for each branch as evenly as possible, 
-    spreading the remainder to the first few territories.  
-    """
-    splitTroops = [troopsNum // numSplits] * numSplits
-    
-    # Distribute remaining troops as evenly as possible
-    for i in range(troopsNum % numSplits):
-        splitTroops[i] += 1
-        
-    return splitTroops
-
 
 
 def graphToAttackRec(gameState : GameState, attackGraph : nx.DiGraph, currNode : int, currTroops: int) -> Attack:
@@ -237,7 +220,8 @@ def graphToAttackRec(gameState : GameState, attackGraph : nx.DiGraph, currNode :
     splitIndex = 0
     
     addingList = []    
-    for neighbour in attackGraph.nodes[currNode].neighbors:
+    
+    for neighbour in attackGraph.neighbors(currNode):
         # Always asks for perfect attack currently, no matter how many troops there are
         # Also moves troops assuming no losses. !Should be revamped in the future.
         thisAttack = (currNode, neighbour, perfectDice(gameState.map.graph.nodes[neighbour]["troops"]), currTroops)
@@ -260,11 +244,8 @@ def graphToAttack(gameState : GameState, attackGraph : nx.DiGraph, stack : int, 
 
 
         
-def attackSimple(gameState : GameState, territories : Territories) -> Optional[Tuple[Draft, Attack]]:
+def attackSimple(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack, int]:
     attackGraph, stack, sumTroops = attackGraphSimple(gameState, territories)
-    
-    if sumTroops * 2 > gameState.playerDict[gameState.agentID]["troops"]:
-        return None
     
     draft = simpleDraft(gameState, stack)
     
@@ -274,154 +255,6 @@ def attackSimple(gameState : GameState, territories : Territories) -> Optional[T
     # Gets troops number by amount of current troops plus draft amount
     attack = graphToAttack(gameState, attackGraph, stack, gameState.map.graph.nodes[stack]["troops"] + draftDict[stack])
     
-    return (draft, attack)
-
-
-
-def generalDraft(gameState : GameState, territories : Territories) -> Draft:
-    pass
-
+    return (draft, attack, sumTroops)
 
     
-def generalAttack(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
-    """
-    Given a list of target territories, calculates the required moves to attack 
-    all of them in the most efficient possible way.
-    """
-    pass
-    
-    
-def attackTerritory(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack]:
-    """
-    Given a list of target territories, calculates the required moves to attack 
-    all of them in the most efficient possible way.
-    """
-    pass    
-
-def contestedBonuses(player : int, gameState : GameState) -> set[str]:
-    """Gets list of which bonuses are planned to be taken by the agent"""
-    contestedBonuses = set()
-    
-    for bonus in gameState.map.bonuses:
-        # Planned bonuses cannot already be taken
-        if bonus not in gameState.playerDict[player]["bonuses"]:
-            # Check how many territories are owned by the agent
-            terrsOwned = len(gameState.map.bonuses[bonus]["territories"] & gameState.playerDict[player]["territories"])
-            # If the agent owns more than half of the territories in the bonus, it is contested
-            if terrsOwned / len(gameState.map.bonuses[bonus]["territories"]) > 0.5:
-                contestedBonuses.add(bonus)
-    
-    return contestedBonuses
-    
-
-def generalFortify(gameState : GameState) -> Fortify:
-    """
-    Given a list of target territories, calculates the best possible 
-    fortify action
-    """
-    # Attempts to shore up gaping hole in defences
-    
-    borders = findBorders(gameState.agentID, gameState)
-    minBorder = min(borders)
-    
-    
-    # For owned (or nearly owned) bonuses, 
-        # - checks all borders to see weak points, 
-        # - finds troops to disperse
-    
-    # Attempts to reclaim distant stack
-    
-    # For all stacks 
-        # checks if stack is distant to bonuses
-        # returns stack to bonus
-    
-    # Attempts to ferry troops from internal territories
-    
-    # For all internal territories
-        # checks if territory has too many troops
-        # returns troops to border
-    
-    # Increases troop density 
-    # Takes second least dense stack and merges.
-    
-    
-    stacks = stackSelect(gameState, gameState.agentID)
-    
-    
-    
-    
-    
-    # Applies a fortify heuristic? Then takes into account desired territories?
-    pass
-    
-
-
-
-
-
-
-
-def validateActionSet(actionSet : ActionSet) -> bool:
-    """
-    Given a set of actions, validates whether they are mutually possible in sequence.
-    """
-    killSet = set()
-    takeSet = set()
-    breakSet = set()
-
-
-    # Basic check to ensure that actions aren't attempting to kill a player and then
-    # take their bonus
-    for action in actionSet:
-        if isinstance(action, KillPlayer):
-            killSet.add(action.player)
-        elif isinstance(action, BreakBonus):
-            breakSet.add(action.player)
-        elif isinstance(action, TakeBonus):
-            takeSet.add(action.player)
-            
-    # Returns check of overlap. set returns true if non empty I believe    
-    return not ((killSet & breakSet) or (killSet & takeSet) or (breakSet & takeSet))
-
-
-def pruneActionSeq(actionSeq : ActionSet, gameState : GameState) -> bool:   
-    """
-    Given the a set of actions to be performed simultaniously, performs iterative 
-    pruning to eliminate as many action possibilites as possible. In this case 
-    "iterative" means that it should do as many simple checks for each 
-    action's viability as possible before serious calculations. This is 
-    essentially finding the lower bound of action cost, comparing it with 
-    the upper bound of action reward, and determining whether the action 
-    is profitable. Returns a list of viable actions for concrete 
-    calculations and heuristics.
-    """
-    # Example pseudo code for pruning the killPlayer action:
-    #  - calculate the simple expected value of remaining troops and 
-    #    cards, territories and bonuses after killing the player.
-    #  - if profitable, do a super auto pets style expected value 
-    #    attacks of largest owned troop stacks attacking theirs, and 
-    #    second largest, down to the smallest. Recalculate troop distribution
-    #    and profitability. If still profitable, return the action for future 
-    #    pathing calculations. 
-    return True
-
-
-
-def generateActionSeq(actionDict : Dict[ActionType, Set[ActionSet]], length : int) -> Set[ActionSet]:
-    """
-    Given a list of actions, generates the sequence of actions that should be 
-    taken. This should be the final step in the action generation process. 
-    """
-    
-    if length == 1:
-        return set().union(*actionDict.values())
-    
-    else:
-        combSet = actionDict[ActionType.KILLPLAYER] | actionDict[ActionType.TAKEBONUS] | actionDict[ActionType.BREAKBONUS] | actionDict[ActionType.EXPANDBORDERS] | actionDict[ActionType.MIGRATE] 
-        combinations = {frozenset(comb) for comb in itertools.combinations(combSet, length)}
-        return {comb for comb in combinations if validateActionSet(comb)}
-
-
-
-
-
