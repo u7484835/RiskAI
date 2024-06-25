@@ -4,6 +4,8 @@ from typing import List, Dict
 import itertools
 import signal
 import click
+from .agentHelper import generalDraft, generalFortify
+from .simpleAI import attackSimple
 
 
 def generateActionDict(player: int, gameState : GameState) -> Dict[ActionType, Set[ActionSet]]:
@@ -64,8 +66,6 @@ def generateActionSeq(actionDict : Dict[ActionType, Set[ActionSet]], length : in
     
 
 
-
-
 def calculateAction(gameState : GameState, action : Action) -> Optional[Territories]:
     match action.action:
         case ActionType.KILLPLAYER:
@@ -84,26 +84,65 @@ def calculateAction(gameState : GameState, action : Action) -> Optional[Territor
             return None
         case _:
             raise ValueError("Invalid agent type")
+        
+
+
+def evalAction(action : Action) -> int:
+    match action.action:
+        case ActionType.KILLPLAYER:
+            return 1000
+        case ActionType.TAKEBONUS:
+            return 300
+        case ActionType.BREAKBONUS:
+            return 50
+        case ActionType.EXPANDBORDERS:
+            return 20
+        case ActionType.TAKETERRITORIES:
+            return 10
+        case ActionType.TAKECARD:
+            return 40
+        case ActionType.TAKECARD:
+            return 0
+        case _:
+            raise ValueError("Invalid agent type")
     
 
 # !Note: Iterative deepening search should save all maps of hard calculation  
 # paths into a dictionary for lookup. Iterative deepening should then also 
 # prioritise continuing from nodes which have already been calculated.
 # @ This is now far beyond the scope of the project.
-def calculateActionSeq(gameState : GameState, actionSet : ActionSet, depth : int) -> Tuple[Move, int]:
+def calculateActionSeq(gameState : GameState, actionSet : ActionSet, depth : int) -> Optional[Tuple[Move, int]]:
     """
     Given an action from the heavily pruned list of actions, perform 
     pathing calculations using definitive action rules. Should return 
     Moves calculated and heuristic value. 
     """
+    actionEval = 0
+    
+    totalTerritories = set()
     for action in actionSet:
+        actionEval += evalAction(action)
         territories = calculateAction(gameState, action)
         if territories is None:
             if action.action == ActionType.TAKETERRITORIES:
                 territories = ttData(gameState, depth)
             if action.action == ActionType.NOATTACK:
                 move = (generalDraft(gameState), [], generalFortify(gameState))
-                return (0)
+                return (move, 0)
+            
+        totalTerritories = totalTerritories.union(territories)
+    
+    draft, attack, sumTroops = attackSimple(gameState, totalTerritories)
+    
+    fortify = generalFortify(gameState)
+    
+    return ((draft, attack, fortify), sumTroops, actionEval)
+    
+    
+    
+    
+        
+        
         
 
 
@@ -127,7 +166,7 @@ def ids (gameState : GameState, timeConstraint : int) -> Move:
     heuristic function. Note that it should exit at any point during execution 
     as soon as the time constraint is met. 
     """
-    actionDict = generateActionDict(gameState.currentPlayer, gameState)
+    actionDict = generateActionDict(gameState.agentID, gameState)
     depth = 0
     bestMove = (float('-inf'), None)
 
@@ -144,7 +183,13 @@ def ids (gameState : GameState, timeConstraint : int) -> Move:
         while len(actionSeqs) > 0:
             
             for seq in actionSeqs:
-                move, eval = calculateActionSeq(gameState, seq, depth)
+                move, sumTroops, eval = calculateActionSeq(gameState, seq, depth)
+                
+                # Early stopping if sequence isn't viable
+                if sumTroops * 2 > gameState.playerDict[gameState.agentID]["troops"]:
+                     continue
+    
+                
                 if eval > bestMove[1]:
                     bestMove = (move, eval)
             

@@ -135,10 +135,10 @@ def generateTBSet(player : int, gameState: GameState) -> Set[TakeBonus]:
     
     actions = set()
     for bonus in gameState.map.bonuses.keys():
-        if bonus not in gameState.playerDict[player]["bonuses"]:
+        if bonus not in gameState.playerDict[player]["bonusesHeld"]:
             owningPlayer = None
             for player in gameState.playersAlive:
-                if bonus in gameState.playerDict[player]["bonuses"]:
+                if bonus in gameState.playerDict[player]["bonusesHeld"]:
                     owningPlayer = player
                     break
             actions.add(TakeBonus(bonus, owningPlayer))
@@ -182,7 +182,7 @@ def generateBBSet(player : int, gameState: GameState) -> Set[BreakBonus]:
     return {
         BreakBonus(aliveP, bonus)
         for aliveP in gameState.playersAlive if aliveP != player
-        for bonus in gameState.playerDict[aliveP]["bonuses"]
+        for bonus in gameState.playerDict[aliveP]["bonusesHeld"]
     }
 
 
@@ -282,6 +282,10 @@ class TakeCard(Action):
 
     def __eq__(self, other):
         return isinstance(other, TakeCard)
+    
+
+    def __hash__(self):
+        return hash(self.attack)
 
 
 
@@ -338,6 +342,9 @@ class TakeTerritories(Action):
             return False
         return self.territory == other.territory
     
+    def __hash__(self):
+        return hash(self.territory)
+    
     
 def generateTTSet() -> Set[TakeTerritories]:
     """
@@ -378,8 +385,12 @@ class NoAttack(Action):
     """
     Do not attack, or take a card. Perhaps do not fortify.
     """
-    def __init__(self):
+    def __init__(self, terr):
         super().__init__(ActionType.NOATTACK)
+        self.terr = terr
+    
+    def __hash__(self):
+        return hash(self.terr)
         
 
 def generateNASet() -> Set[NoAttack]:

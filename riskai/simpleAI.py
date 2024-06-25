@@ -1,6 +1,5 @@
 from .structures import *
 from .actions import *
-from typing import List
 from .agentHelper import makeTrade, draftTroopsAmount, stackSelect, ownedTerrConnected, splitTroops
 from .dice import perfectDice
 from .drawInterface import drawArborescence, drawPath
@@ -221,7 +220,8 @@ def graphToAttackRec(gameState : GameState, attackGraph : nx.DiGraph, currNode :
     splitIndex = 0
     
     addingList = []    
-    for neighbour in attackGraph.nodes[currNode].neighbors:
+    
+    for neighbour in attackGraph.neighbors(currNode):
         # Always asks for perfect attack currently, no matter how many troops there are
         # Also moves troops assuming no losses. !Should be revamped in the future.
         thisAttack = (currNode, neighbour, perfectDice(gameState.map.graph.nodes[neighbour]["troops"]), currTroops)
@@ -244,11 +244,8 @@ def graphToAttack(gameState : GameState, attackGraph : nx.DiGraph, stack : int, 
 
 
         
-def attackSimple(gameState : GameState, territories : Territories) -> Optional[Tuple[Draft, Attack]]:
+def attackSimple(gameState : GameState, territories : Territories) -> Tuple[Draft, Attack, int]:
     attackGraph, stack, sumTroops = attackGraphSimple(gameState, territories)
-    
-    if sumTroops * 2 > gameState.playerDict[gameState.agentID]["troops"]:
-        return None
     
     draft = simpleDraft(gameState, stack)
     
@@ -258,6 +255,6 @@ def attackSimple(gameState : GameState, territories : Territories) -> Optional[T
     # Gets troops number by amount of current troops plus draft amount
     attack = graphToAttack(gameState, attackGraph, stack, gameState.map.graph.nodes[stack]["troops"] + draftDict[stack])
     
-    return (draft, attack)
+    return (draft, attack, sumTroops)
 
     
