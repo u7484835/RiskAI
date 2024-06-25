@@ -14,7 +14,6 @@ TIMECONSTRAINT = 5
 def getAgentTurn(gameState : GameState, agentType : str) -> Move:
     match agentType:
         case "actionAI":
-            
             return riskAgent(gameState, TIMECONSTRAINT)
         case "randAI":
             return randAI(gameState)

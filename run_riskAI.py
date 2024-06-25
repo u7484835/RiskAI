@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-
-"""Convenience wrapper for running impsy directly from source tree."""
+"""Convenience wrapper for running riskAI directly from source tree."""
 
 
 from riskAI.__main__ import main

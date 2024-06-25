@@ -4,8 +4,8 @@ import os
 # Get the directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Construct the path to the DiceData folder
-dice_data_dir = os.path.join(current_dir, '..', 'DiceData')
+# Construct the path to the diceData folder
+dice_data_dir = os.path.join(current_dir, '..', 'diceData')
 
 # Read the CSV files using the constructed paths
 minAttLostDf = pd.read_csv(os.path.join(dice_data_dir, 'MinAttLost.csv'), index_col=0)
