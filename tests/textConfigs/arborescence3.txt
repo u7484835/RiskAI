@@ -1,11 +1,11 @@
 Classic
 5
+red
 blue
 purple
 green
 red
 yellow
-red
 yellow
 3
 yellow
@@ -91,7 +91,9 @@ red
 blue
 4
 3
-Alaska
+Siberia
 y
-North Africa
+Ural
+y
+South Africa
 n

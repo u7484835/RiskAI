@@ -84,12 +84,12 @@ green
 3
 blue
 4
-purple
-4
-red
+blue
 4
 blue
 4
-3
+blue
+4
+4
 Alaska
 n
