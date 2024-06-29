@@ -17,23 +17,14 @@ Then you can install the dependencies using Poetry:
 
     poetry install
 
-Finally, you can test that IMPSY works:
-
-    poetry run ./run_riskAI.py --help
-
-
 ## How to use
 
-*This is in progress, will be filled in later. Currently using a template from Charles Martin's IMPSY project.*
+The main executable can be run using the command ```poetry run python run_riskAI.py```. This will execute a function which guides all functionality implemented for the RiskAI project. To run the rudimentary tests implemented, use the command ```poetry run python tests/<testName>.py```. An example would be ```poetry run python tests/graphTests.py```. Each test was intended for proof of concept tests during implementation rather than validity of the programs so they may not be very useful. 
 
-Graph test is run using 
+## Questions? Contact me
 
-poetry run python tests/graphTests.py
-
-Main is run using 
-
-poetry run python run_riskAI.py
+If you'd like any further information or explanation about the repo, please contact me at u7488435@anu.edu.au. I'd be happy to help. 
 
 ## Credits 
 
-The layout of this repository, the README, and package choices have been modelled off of Charles Martin's IMPSY project. Huge hat tip to him for the inspiraration for  the foundation of this project. You can find the project [here](https://github.com/cpmpercussion/imps.git)
+The layout of this repository, the README, and package choices have been modelled off of Charles Martin's IMPSY project. Huge hat tip to him for the inspiraration for the underlying foundation of this project. You can find the project [here](https://github.com/cpmpercussion/imps.git)
